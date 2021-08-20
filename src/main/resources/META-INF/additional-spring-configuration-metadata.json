@@ -1,0 +1,12 @@
+{
+  "properties": [
+    {
+      "name": "jwt-provider.expiration-ms",
+      "type": "java.lang.Integer"
+    },
+    {
+      "name": "jwt-provider.issuer",
+      "type": "java.lang.String"
+    }
+  ]
+}
