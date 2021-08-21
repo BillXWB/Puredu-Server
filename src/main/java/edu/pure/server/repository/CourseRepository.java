@@ -1,7 +1,7 @@
 package edu.pure.server.repository;
 
-import edu.pure.server.model.Role;
-import edu.pure.server.model.RoleName;
+import edu.pure.server.model.Course;
+import edu.pure.server.model.CourseName;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -13,22 +13,22 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 @Repository
-public interface RoleRepository extends JpaRepository<Role, Long> {
-    Optional<Role> findByName(RoleName roleName);
+public interface CourseRepository extends JpaRepository<Course, Long> {
+    Optional<Course> findByName(CourseName courseName);
 
-    boolean existsByName(RoleName roleName);
+    boolean existsByName(CourseName courseName);
 }
 
 @AllArgsConstructor
 @Component
-class RoleLoader {
-    private RoleRepository repository;
+class CourseLoader {
+    private CourseRepository repository;
 
     @PostConstruct
     private void load() {
-        Arrays.stream(RoleName.values())
+        Arrays.stream(CourseName.values())
               .filter(Predicate.not(this.repository::existsByName))
-              .map(Role::new)
+              .map(Course::new)
               .forEach(this.repository::save);
     }
 }

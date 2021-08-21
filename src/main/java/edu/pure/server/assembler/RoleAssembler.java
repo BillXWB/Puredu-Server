@@ -1,7 +1,7 @@
 package edu.pure.server.assembler;
 
-import edu.pure.server.controller.UserController;
-import edu.pure.server.model.User;
+import edu.pure.server.controller.RoleController;
+import edu.pure.server.model.Role;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
@@ -11,13 +11,13 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
-public class UserAssembler implements RepresentationModelAssembler<User, EntityModel<User>> {
+public class RoleAssembler implements RepresentationModelAssembler<Role, EntityModel<Role>> {
     @Override
-    public @NotNull EntityModel<User> toModel(@NotNull final User user) {
+    public @NotNull EntityModel<Role> toModel(@NotNull final Role role) {
         return EntityModel.of(
-                user,
-                linkTo(methodOn(UserController.class).getOne(user.getId())).withSelfRel(),
-                linkTo(methodOn(UserController.class).getAll()).withRel("all")
+                role,
+                linkTo(methodOn(RoleController.class).getOne(role.getId())).withSelfRel(),
+                linkTo(methodOn(RoleController.class).getAll()).withRel("all")
         );
     }
 }

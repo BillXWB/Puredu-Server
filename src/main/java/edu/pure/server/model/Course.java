@@ -9,8 +9,8 @@ import javax.persistence.*;
 @Getter
 @NoArgsConstructor
 @Entity
-@Table(name = "roles")
-public class Role {
+@Table(name = "courses")
+public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,9 +18,7 @@ public class Role {
     @Enumerated(EnumType.STRING)
     @Column(unique = true, length = 20)
     @NaturalId
-    private RoleName name;
+    private CourseName name;
 
-    public Role(final RoleName name) {
-        this.name = name;
-    }
+    public Course(final CourseName name) {this.name = name;}
 }

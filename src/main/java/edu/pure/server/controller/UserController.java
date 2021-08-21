@@ -4,6 +4,7 @@ import edu.pure.server.assembler.UserAssembler;
 import edu.pure.server.exception.ResourceNotFoundException;
 import edu.pure.server.model.User;
 import edu.pure.server.repository.UserRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+@AllArgsConstructor
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
