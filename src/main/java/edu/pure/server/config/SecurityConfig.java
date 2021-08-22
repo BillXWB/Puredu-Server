@@ -55,7 +55,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .exceptionHandling().authenticationEntryPoint(this.unauthorizedHandler).and()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
             .authorizeRequests(configure -> configure
-                    .antMatchers("/api/auth/**").permitAll()
+                    .antMatchers("/api/**").permitAll() // FIXME just for dev
                     .anyRequest().authenticated()
             )
             .addFilterBefore(this.jwtAuthenticationFilter(),

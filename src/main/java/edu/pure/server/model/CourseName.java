@@ -1,5 +1,7 @@
 package edu.pure.server.model;
 
+import org.jetbrains.annotations.NotNull;
+
 public enum CourseName {
     CHINESE,
     ENGLISH,
@@ -9,5 +11,21 @@ public enum CourseName {
     BIOLOGY,
     HISTORY,
     GEOGRAPHY,
-    POLITICS
+    POLITICS;
+
+    private static final String GEOGRAPHY_ = "geo";
+
+    public static CourseName fromOpedukg(@NotNull final String courseName) {
+        if (courseName.equals(CourseName.GEOGRAPHY_)) {return CourseName.GEOGRAPHY;}
+        return CourseName.valueOf(courseName.toUpperCase());
+    }
+
+    public String toOpedukg() {
+        return CourseName.toOpedukg(this);
+    }
+
+    public static String toOpedukg(final CourseName courseName) {
+        if (courseName == CourseName.GEOGRAPHY) {return CourseName.GEOGRAPHY_;}
+        return courseName.toString().toLowerCase();
+    }
 }
