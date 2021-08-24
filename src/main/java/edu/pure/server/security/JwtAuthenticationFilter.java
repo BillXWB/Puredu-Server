@@ -28,14 +28,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private UserPrincipalService userPrincipalService;
 
     @Override
-    protected void doFilterInternal(@NotNull final HttpServletRequest request,
-                                    @NotNull final HttpServletResponse response,
-                                    @NotNull final FilterChain filterChain)
+    protected void doFilterInternal(final @NotNull HttpServletRequest request,
+                                    final @NotNull HttpServletResponse response,
+                                    final @NotNull FilterChain filterChain)
             throws ServletException, IOException {
         try {
             final String token = JwtAuthenticationFilter.getJwtFromRequest(request);
             if (Strings.hasText(token) && this.tokenProvider.validateJwt(token)) {
-                final Long userId = this.tokenProvider.getUserIdFromJwt(token);
+                final long userId = this.tokenProvider.getUserIdFromJwt(token);
                 final UserDetails userDetails = this.userPrincipalService.loadUserById(userId);
                 final UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails, null,
@@ -52,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private static @Nullable String getJwtFromRequest(@NotNull final HttpServletRequest request) {
+    private static @Nullable String getJwtFromRequest(final @NotNull HttpServletRequest request) {
         final String bearerToken = request.getHeader("Authorization");
         final String TOKEN_HEADER = "Bearer ";
         if (Strings.hasText(bearerToken) && bearerToken.startsWith(TOKEN_HEADER)) {

@@ -13,7 +13,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Component
 public class RoleAssembler implements RepresentationModelAssembler<Role, EntityModel<Role>> {
     @Override
-    public @NotNull EntityModel<Role> toModel(@NotNull final Role role) {
+    public @NotNull EntityModel<Role> toModel(final @NotNull Role role) {
         return EntityModel.of(
                 role,
                 linkTo(methodOn(RoleController.class).getOne(role.getId())).withSelfRel(),

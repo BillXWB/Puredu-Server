@@ -26,8 +26,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    private UserRepository userRepository;
-    private UserAssembler userAssembler;
+    private final UserRepository userRepository;
+    private final UserAssembler userAssembler;
 
     @GetMapping("/{userId}")
     @PreAuthorize("#currentUser.id == #userId")
@@ -40,7 +40,7 @@ public class UserController {
     }
 
     @GetMapping("")
-    @RolesAllowed({"ADMIN"})
+    @RolesAllowed("ADMIN")
     public CollectionModel<EntityModel<User>> getAll() {
         final List<EntityModel<User>> users = this.userRepository
                 .findAll().stream()

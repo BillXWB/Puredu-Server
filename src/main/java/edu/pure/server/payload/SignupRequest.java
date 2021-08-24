@@ -8,20 +8,8 @@ import javax.validation.constraints.Size;
 
 @Getter
 public class SignupRequest {
-    @NotBlank
-    @Size(min = 2, max = 20)
-    private String name;
-
-    @NotBlank
-    @Size(max = 20)
-    private String username;
-
-    @NotBlank
-    @Size(max = 20)
-    @Email
-    private String email;
-
-    @NotBlank
-    @Size(max = 20)
-    private String password;
+    private @NotBlank @Size(min = 2, max = 20) String name;
+    private @NotBlank @Size(max = 20) String username;
+    private @NotBlank @Size(max = 20) @Email String email;
+    private @NotBlank @Size(max = 20) String password;
 }

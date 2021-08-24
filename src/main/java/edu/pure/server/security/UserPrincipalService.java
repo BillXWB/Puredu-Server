@@ -25,7 +25,7 @@ public class UserPrincipalService implements UserDetailsService {
     }
 
     @Transactional
-    UserDetails loadUserById(final Long id) {
+    UserDetails loadUserById(final long id) {
         final User user = this.repository
                 .findById(id)
                 .orElseThrow(() -> UserNotFoundException.withId(id));

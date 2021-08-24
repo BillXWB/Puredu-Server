@@ -22,7 +22,7 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
 @AllArgsConstructor
 @Component
 class RoleLoader {
-    private RoleRepository repository;
+    private final RoleRepository repository;
 
     @PostConstruct
     private void load() {

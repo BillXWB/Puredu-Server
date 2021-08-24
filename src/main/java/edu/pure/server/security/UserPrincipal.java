@@ -15,14 +15,14 @@ import java.util.stream.Collectors;
 @Getter
 @AllArgsConstructor
 public class UserPrincipal implements UserDetails {
-    private long id;
-    private String name;
-    private String username;
-    private String email;
-    private String password;
-    private Collection<? extends GrantedAuthority> authorities;
+    private final long id;
+    private final String name;
+    private final String username;
+    private final String email;
+    private final String password;
+    private final Collection<? extends GrantedAuthority> authorities;
 
-    public static @NotNull UserPrincipal from(@NotNull final User user) {
+    public static @NotNull UserPrincipal from(final @NotNull User user) {
         final List<GrantedAuthority> authorities
                 = user.getRoles().stream()
                       .map(role -> new SimpleGrantedAuthority(role.getName().name()))

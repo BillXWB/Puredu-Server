@@ -34,16 +34,16 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private AuthenticationManager authenticationManager;
-    private UserRepository userRepository;
-    private UserAssembler userAssembler;
-    private RoleRepository roleRepository;
-    private PasswordEncoder passwordEncoder;
-    private JwtProvider jwtProvider;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final UserAssembler userAssembler;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
     @PostMapping("/login")
     public ResponseEntity<JwtAuthenticationResponse>
-    authenticateUser(@Valid @RequestBody @NotNull final LoginRequest request) {
+    authenticateUser(@RequestBody final @Valid @NotNull LoginRequest request) {
         final Authentication authentication = this.authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
@@ -56,7 +56,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse>
-    registerUser(@Valid @RequestBody @NotNull final SignupRequest request) {
+    registerUser(@RequestBody final @Valid @NotNull SignupRequest request) {
         if (this.userRepository.existsByUsername(request.getUsername())) {
             return ResponseEntity.badRequest()
                                  .body(new ApiResponse(false,

@@ -22,11 +22,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    private UserPrincipalService userPrincipalService;
-    private JwtAuthenticationEntryPoint unauthorizedHandler;
+    private final UserPrincipalService userPrincipalService;
+    private final JwtAuthenticationEntryPoint unauthorizedHandler;
 
     @Override
-    protected void configure(@NotNull final AuthenticationManagerBuilder auth) throws Exception {
+    protected void configure(final @NotNull AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(this.userPrincipalService)
             .passwordEncoder(WebSecurityConfig.passwordEncoder());
     }
@@ -38,7 +38,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(@NotNull final HttpSecurity http) throws Exception {
+    protected void configure(final @NotNull HttpSecurity http) throws Exception {
         http.cors().and()
             .csrf().disable() // TODO
             .exceptionHandling().authenticationEntryPoint(this.unauthorizedHandler).and()

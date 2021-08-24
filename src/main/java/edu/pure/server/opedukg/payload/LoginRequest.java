@@ -6,9 +6,6 @@ import javax.validation.constraints.NotBlank;
 
 @Getter
 public class LoginRequest {
-    @NotBlank
-    private String phoneNumber;
-
-    @NotBlank
-    private String password;
+    private @NotBlank String phoneNumber;
+    private @NotBlank String password;
 }

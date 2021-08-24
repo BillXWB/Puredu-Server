@@ -22,7 +22,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 @AllArgsConstructor
 @Component
 class CourseLoader {
-    private CourseRepository repository;
+    private final CourseRepository repository;
 
     @PostConstruct
     private void load() {

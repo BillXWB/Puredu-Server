@@ -14,7 +14,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Component
 public class UserAssembler implements RepresentationModelAssembler<User, EntityModel<User>> {
     @Override
-    public @NotNull EntityModel<User> toModel(@NotNull final User user) {
+    public @NotNull EntityModel<User> toModel(final @NotNull User user) {
         return EntityModel.of(
                 user,
                 linkTo(methodOn(UserController.class)

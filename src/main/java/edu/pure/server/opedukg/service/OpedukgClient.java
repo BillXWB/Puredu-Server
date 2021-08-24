@@ -30,8 +30,8 @@ class OpedukgClient {
         return this.getWithoutId(url, responseType, params);
     }
 
-    <T> T getWithoutId(String url, final Class<T> responseType,
-                       @NotNull final Map<String, String> params_) {
+    private <T> T getWithoutId(String url, final Class<T> responseType,
+                               final @NotNull Map<String, String> params_) {
         final Map<String, List<String>> params
                 = params_.entrySet().stream()
                          .collect(Collectors.toMap(Map.Entry::getKey,
@@ -42,6 +42,7 @@ class OpedukgClient {
         return this.client.getForObject(url, responseType, params);
     }
 
+    @SuppressWarnings("SameParameterValue")
     <T> T post(final String url, final Class<T> responseType, Map<String, String> params) {
         params = Stream.concat(Map.of("id", this.id).entrySet().stream(),
                                params.entrySet().stream())

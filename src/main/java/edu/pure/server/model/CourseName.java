@@ -15,8 +15,10 @@ public enum CourseName {
 
     private static final String GEOGRAPHY_ = "geo";
 
-    public static CourseName fromOpedukg(@NotNull final String courseName) {
-        if (courseName.equals(CourseName.GEOGRAPHY_)) {return CourseName.GEOGRAPHY;}
+    public static CourseName fromOpedukg(final @NotNull String courseName) {
+        if (courseName.equals(CourseName.GEOGRAPHY_)) {
+            return CourseName.GEOGRAPHY;
+        }
         return CourseName.valueOf(courseName.toUpperCase());
     }
 
@@ -24,8 +26,10 @@ public enum CourseName {
         return CourseName.toOpedukg(this);
     }
 
-    public static String toOpedukg(final CourseName courseName) {
-        if (courseName == CourseName.GEOGRAPHY) {return CourseName.GEOGRAPHY_;}
+    private static String toOpedukg(final CourseName courseName) {
+        if (courseName == CourseName.GEOGRAPHY) {
+            return CourseName.GEOGRAPHY_;
+        }
         return courseName.toString().toLowerCase();
     }
 }

@@ -22,25 +22,25 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/opedukg")
-@RolesAllowed({"USER"})
+@RolesAllowed("USER")
 public class OpedukgController {
-    private LoginService loginService;
-    private SearchService searchService;
-    private EntityDetailService detailService;
-    private RecognizeService recognizeService;
-    private ExerciseService exerciseService;
+    private final LoginService loginService;
+    private final SearchService searchService;
+    private final EntityDetailService detailService;
+    private final RecognizeService recognizeService;
+    private final ExerciseService exerciseService;
 
     @PostMapping("/login")
-    @RolesAllowed({"ADMIN"})
+    @RolesAllowed("ADMIN")
     public ResponseEntity<Map<String, String>>
-    login(@Valid @RequestBody @NotNull final LoginRequest request) {
+    login(@RequestBody final @Valid @NotNull LoginRequest request) {
         final String id = this.loginService.login(request.getPhoneNumber(), request.getPassword());
         return ResponseEntity.ok(Map.of("id", id));
     }
 
     @GetMapping("/search")
-    public CollectionModel<SearchResult> search(@RequestParam @NotNull final CourseName course,
-                                                @RequestParam @NotNull final String keyword) {
+    public CollectionModel<SearchResult> search(@RequestParam final @NotNull CourseName course,
+                                                @RequestParam final @NotNull String keyword) {
         return CollectionModel.of(
                 this.searchService.search(course.toOpedukg(), keyword),
                 linkTo(methodOn(OpedukgController.class).search(course, keyword)).withSelfRel()
@@ -49,8 +49,8 @@ public class OpedukgController {
 
     @GetMapping("/detail")
     public EntityModel<KnowledgeBaseEntityDetail>
-    getDetail(@RequestParam @NotNull final CourseName course,
-              @RequestParam @NotNull final String entityName) {
+    getDetail(@RequestParam final @NotNull CourseName course,
+              @RequestParam final @NotNull String entityName) {
         return EntityModel.of(
                 this.detailService.getDetail(course.toOpedukg(), entityName),
                 linkTo(methodOn(OpedukgController.class)
@@ -66,8 +66,8 @@ public class OpedukgController {
 
     @GetMapping("/recognize")
     public CollectionModel<RecognitionResult>
-    recognize(@RequestParam @NotNull final CourseName course,
-              @RequestParam @NotNull final String text) {
+    recognize(@RequestParam final @NotNull CourseName course,
+              @RequestParam final @NotNull String text) {
         return CollectionModel.of(
                 this.recognizeService.recognize(course.toOpedukg(), text),
                 linkTo(methodOn(OpedukgController.class).recognize(course, text)).withSelfRel()

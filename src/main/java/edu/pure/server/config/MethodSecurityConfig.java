@@ -3,14 +3,11 @@ package edu.pure.server.config;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleHierarchyVoter;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
-
-import java.util.List;
 
 @Configuration
 @EnableGlobalMethodSecurity(
@@ -21,8 +18,8 @@ import java.util.List;
 public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
     @Override
     protected AffirmativeBased accessDecisionManager() {
-        final AffirmativeBased affirmativeBased = (AffirmativeBased) super.accessDecisionManager();
-        final List<AccessDecisionVoter<?>> decisionVoters = affirmativeBased.getDecisionVoters();
+        final var affirmativeBased = (AffirmativeBased) super.accessDecisionManager();
+        final var decisionVoters = affirmativeBased.getDecisionVoters();
         decisionVoters.add(MethodSecurityConfig.roleHierarchyVoter());
         return new AffirmativeBased(decisionVoters);
     }
@@ -33,7 +30,7 @@ public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
     }
 
     private static @NotNull RoleHierarchyImpl roleHierarchy() {
-        final RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
+        final var roleHierarchy = new RoleHierarchyImpl();
         roleHierarchy.setHierarchy("ROLE_ADMIN > ROLE_USER");
         return roleHierarchy;
     }

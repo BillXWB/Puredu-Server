@@ -10,7 +10,7 @@ public class UserNotFoundException extends UsernameNotFoundException {
     }
 
     @Contract("_ -> new")
-    public static @NotNull UserNotFoundException withId(final Long id) {
+    public static @NotNull UserNotFoundException withId(final long id) {
         return new UserNotFoundException("id", id);
     }
 

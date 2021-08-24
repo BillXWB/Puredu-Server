@@ -37,7 +37,7 @@ public class JwtProvider {
         JwtProvider.logger.info("-- END PUBLIC KEY --");
     }
 
-    public String generateToken(@NotNull final Authentication authentication) {
+    public String generateToken(final @NotNull Authentication authentication) {
         final UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         final Date now = new Date();
         final Date expiry = new Date(now.getTime() + this.expirationMs);
@@ -50,7 +50,7 @@ public class JwtProvider {
                    .compact();
     }
 
-    Long getUserIdFromJwt(final String token) {
+    long getUserIdFromJwt(final String token) {
         final Claims claims = Jwts.parserBuilder()
                                   .setSigningKey(this.keyPair.getPublic())
                                   .requireIssuer(this.issuer)

@@ -22,13 +22,13 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/roles")
-@RolesAllowed({"ADMIN"})
+@RolesAllowed("ADMIN")
 public class RoleController {
-    private RoleRepository roleRepository;
-    private RoleAssembler roleAssembler;
+    private final RoleRepository roleRepository;
+    private final RoleAssembler roleAssembler;
 
     @GetMapping("/{roleId}")
-    public EntityModel<Role> getOne(@PathVariable final Long roleId) {
+    public EntityModel<Role> getOne(@PathVariable final long roleId) {
         final Role role = this.roleRepository
                 .findById(roleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "id", roleId));
