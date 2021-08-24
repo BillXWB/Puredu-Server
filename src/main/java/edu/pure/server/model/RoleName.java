@@ -1,5 +1,6 @@
 package edu.pure.server.model;
 
 public enum RoleName {
-    USER
+    ROLE_ADMIN,
+    ROLE_USER
 }

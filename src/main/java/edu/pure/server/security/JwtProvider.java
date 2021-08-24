@@ -43,7 +43,7 @@ public class JwtProvider {
         final Date expiry = new Date(now.getTime() + this.expirationMs);
         return Jwts.builder()
                    .setIssuer(this.issuer)
-                   .setSubject(userPrincipal.getId().toString())
+                   .setSubject(String.valueOf(userPrincipal.getId()))
                    .setIssuedAt(now)
                    .setExpiration(expiry)
                    .signWith(this.keyPair.getPrivate())

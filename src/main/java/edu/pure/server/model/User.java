@@ -34,7 +34,7 @@ public class User extends DateAudit {
     @Column(length = 60)
     private String password;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -42,7 +42,7 @@ public class User extends DateAudit {
     )
     private Set<Role> roles = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_courses",
             joinColumns = @JoinColumn(name = "user_id"),

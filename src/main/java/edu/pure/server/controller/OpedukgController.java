@@ -12,6 +12,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/opedukg")
+@RolesAllowed({"USER"})
 public class OpedukgController {
     private LoginService loginService;
     private SearchService searchService;
@@ -29,6 +31,7 @@ public class OpedukgController {
     private ExerciseService exerciseService;
 
     @PostMapping("/login")
+    @RolesAllowed({"ADMIN"})
     public ResponseEntity<Map<String, String>>
     login(@Valid @RequestBody @NotNull final LoginRequest request) {
         final String id = this.loginService.login(request.getPhoneNumber(), request.getPassword());

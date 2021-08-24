@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/roles")
+@RolesAllowed({"ADMIN"})
 public class RoleController {
     private RoleRepository roleRepository;
     private RoleAssembler roleAssembler;
@@ -33,7 +35,7 @@ public class RoleController {
         return this.roleAssembler.toModel(role);
     }
 
-    @GetMapping("/")
+    @GetMapping("")
     public CollectionModel<EntityModel<Role>> getAll() {
         final List<EntityModel<Role>> roles = this.roleRepository
                 .findAll().stream()
