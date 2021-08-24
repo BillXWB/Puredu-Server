@@ -47,13 +47,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/api/auth/**").permitAll()
                     .anyRequest().authenticated()
             )
-            .addFilterBefore(WebSecurityConfig.jwtAuthenticationFilter(),
+            .addFilterBefore(this.jwtAuthenticationFilter(),
                              UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
     @Contract(" -> new")
-    private static @NotNull JwtAuthenticationFilter jwtAuthenticationFilter() {
+    @NotNull JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter();
     }
 
