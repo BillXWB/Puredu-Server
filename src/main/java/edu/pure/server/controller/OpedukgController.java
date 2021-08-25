@@ -7,17 +7,13 @@ import edu.pure.server.opedukg.payload.LoginRequest;
 import edu.pure.server.opedukg.service.*;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Map;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @AllArgsConstructor
 @RestController
@@ -39,58 +35,52 @@ public class OpedukgController {
     }
 
     @GetMapping("/search")
-    public CollectionModel<SearchResult> search(@RequestParam final @NotNull CourseName course,
-                                                @RequestParam final @NotNull String keyword) {
-        return CollectionModel.of(
-                this.searchService.search(course.toOpedukg(), keyword),
-                linkTo(methodOn(OpedukgController.class).search(course, keyword)).withSelfRel()
-        );
+    public ResponseEntity<List<SearchResult>> search(@RequestParam final @NotNull CourseName course,
+                                                     @RequestParam final @NotNull String keyword) {
+        final List<SearchResult> results = this.searchService.search(course.toOpedukg(), keyword);
+        return ResponseEntity.ok(results);
     }
 
     @GetMapping("/detail")
-    public EntityModel<KnowledgeBaseEntityDetail>
+    public ResponseEntity<KnowledgeBaseEntityDetail>
     getDetail(@RequestParam final @NotNull CourseName course,
               @RequestParam final @NotNull String entityName) {
-        return EntityModel.of(
-                this.detailService.getDetail(course.toOpedukg(), entityName),
-                linkTo(methodOn(OpedukgController.class)
-                               .getDetail(course, entityName)).withSelfRel()
-        );
+        final KnowledgeBaseEntityDetail detail = this.detailService.getDetail(course.toOpedukg(),
+                                                                              entityName);
+        return ResponseEntity.ok(detail);
     }
 
     @GetMapping("/question")
-    public EntityModel<OpedukgAnswer> question(@RequestParam final CourseName course,
-                                               @RequestParam final String question) {
+    public ResponseEntity<OpedukgAnswer> question(@RequestParam final CourseName course,
+                                                  @RequestParam final String question) {
         throw new UnimplementedException(); // TODO
     }
 
     @GetMapping("/recognize")
-    public CollectionModel<RecognitionResult>
+    public ResponseEntity<List<RecognitionResult>>
     recognize(@RequestParam final @NotNull CourseName course,
               @RequestParam final @NotNull String text) {
-        return CollectionModel.of(
-                this.recognizeService.recognize(course.toOpedukg(), text),
-                linkTo(methodOn(OpedukgController.class).recognize(course, text)).withSelfRel()
-        );
+        final List<RecognitionResult> results = this.recognizeService.recognize(course.toOpedukg(),
+                                                                                text);
+        return ResponseEntity.ok(results);
     }
 
     @GetMapping("/exercises")
-    public CollectionModel<OpedukgExercise> getExercises(@RequestParam final String entityName) {
-        return CollectionModel.of(
-                this.exerciseService.getExercise(entityName),
-                linkTo(methodOn(OpedukgController.class).getExercises(entityName)).withSelfRel()
-        );
+    public ResponseEntity<List<OpedukgExercise>>
+    getExercises(@RequestParam final String entityName) {
+        final List<OpedukgExercise> exercises = this.exerciseService.getExercise(entityName);
+        return ResponseEntity.ok(exercises);
     }
 
     @GetMapping("/relate")
-    public CollectionModel<RelatedEntity> getRelatedEntities(@RequestParam final CourseName course,
-                                                             @RequestParam final String keyword) {
+    public ResponseEntity<List<RelatedEntity>>
+    getRelatedEntities(@RequestParam final CourseName course, @RequestParam final String keyword) {
         throw new UnimplementedException(); // TODO
     }
 
     @GetMapping("/entity")
-    public Object getEntity(@RequestParam final CourseName course,
-                            @RequestParam final String uri) {
+    public ResponseEntity<Object> getEntity(@RequestParam final CourseName course,
+                                            @RequestParam final String uri) {
         throw new UnimplementedException(); // TODO 感觉应该整合进 detail？
     }
 }

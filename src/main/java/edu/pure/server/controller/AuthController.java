@@ -1,6 +1,5 @@
 package edu.pure.server.controller;
 
-import edu.pure.server.assembler.UserAssembler;
 import edu.pure.server.exception.AppException;
 import edu.pure.server.model.Role;
 import edu.pure.server.model.RoleName;
@@ -12,10 +11,9 @@ import edu.pure.server.payload.SignupRequest;
 import edu.pure.server.repository.RoleRepository;
 import edu.pure.server.repository.UserRepository;
 import edu.pure.server.security.JwtProvider;
+import edu.pure.server.security.UserPrincipal;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,13 +28,15 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.Collections;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
-    private final UserAssembler userAssembler;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
@@ -75,9 +75,10 @@ public class AuthController {
                                                      "User Role was not set."));
         user.setRoles(Collections.singleton(role));
         user = this.userRepository.save(user);
-        final EntityModel<User> entityModel = this.userAssembler.toModel(user);
         return ResponseEntity
-                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .created(linkTo(methodOn(UserController.class)
+                                        .getOne(user.getId(), UserPrincipal.from(user)))
+                                 .toUri())
                 .body(new ApiResponse(true, "User registered successfully."));
     }
 }
