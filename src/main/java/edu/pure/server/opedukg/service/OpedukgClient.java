@@ -42,7 +42,6 @@ class OpedukgClient {
         return this.client.getForObject(url, responseType, params);
     }
 
-    @SuppressWarnings("SameParameterValue")
     <T> T post(final String url, final Class<T> responseType, Map<String, String> params) {
         params = Stream.concat(Map.of("id", this.id).entrySet().stream(),
                                params.entrySet().stream())

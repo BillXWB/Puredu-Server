@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-class EntityProperty {
+public class EntityProperty {
     private final String key;
     private final String value;
 }

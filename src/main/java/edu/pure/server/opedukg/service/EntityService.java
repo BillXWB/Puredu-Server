@@ -5,10 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import edu.pure.server.opedukg.entity.EntityPropertyDetail;
-import edu.pure.server.opedukg.entity.EntityRelation;
-import edu.pure.server.opedukg.entity.KnowledgeBaseEntity;
-import edu.pure.server.opedukg.entity.KnowledgeBaseEntityDetail;
+import edu.pure.server.opedukg.entity.*;
 import edu.pure.server.opedukg.payload.OpedukgResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,13 +17,14 @@ import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
-public class EntityDetailService {
+public class EntityService {
     private static final String URL = "/api/typeOpen/open/infoByInstanceName";
 
     private final OpedukgClient client;
+    private final SearchService searchService;
 
-    public KnowledgeBaseEntityDetail getDetail(final String course, final String entityName) {
-        final OpedukgResponse<Data> response = this.client.get(EntityDetailService.URL,
+    public KnowledgeBaseEntityDetail getEntity(final String course, final String entityName) {
+        final OpedukgResponse<Data> response = this.client.get(EntityService.URL,
                                                                Response.class,
                                                                Map.of("course", course,
                                                                       "name", entityName));
@@ -50,7 +48,14 @@ public class EntityDetailService {
                                                                                   c.getEntityLabel(),
                                                                                   c.getEntity()))
                                                                   ).collect(Collectors.toList())));
-        return new KnowledgeBaseEntityDetail(response.getData().getLabel(), "", properties,
+        final SearchResult searchResult =
+                this.searchService.search(course, entityName).stream()
+                                  .filter(result -> result.getEntity().getName().equals(entityName))
+                                  .findAny()
+                                  .orElseThrow(); // TODO
+        return new KnowledgeBaseEntityDetail(response.getData().getLabel(),
+                                             searchResult.getEntity().getUri(),
+                                             properties,
                                              entities.get(Data.Content.RelationType.OBJECT),
                                              entities.get(Data.Content.RelationType.SUBJECT));
     }

@@ -30,9 +30,10 @@ import java.util.stream.Collectors;
 public class OpedukgController {
     private final LoginService loginService;
     private final SearchService searchService;
-    private final EntityDetailService detailService;
+    private final EntityService entityService;
     private final RecognizeService recognizeService;
     private final ExerciseService exerciseService;
+    private final KnowledgeCardService knowledgeCardService;
 
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
@@ -53,13 +54,21 @@ public class OpedukgController {
         return ResponseEntity.ok(results);
     }
 
-    @GetMapping("/detail")
+    @GetMapping(value = "/entity", params = {"uri", "!name"})
     public ResponseEntity<KnowledgeBaseEntityDetail>
-    getDetail(@RequestParam final @NotNull CourseName course,
-              @RequestParam final @NotNull String entityName) {
-        final KnowledgeBaseEntityDetail detail = this.detailService.getDetail(course.toOpedukg(),
-                                                                              entityName);
-        return ResponseEntity.ok(detail);
+    getEntityByUri(@RequestParam final @NotNull CourseName course, @RequestParam final String uri) {
+        final KnowledgeCard knowledgeCard =
+                this.knowledgeCardService.getKnowledgeCard(course.toOpedukg(), uri);
+        return this.getEntityByName(course, knowledgeCard.getEntity().getName());
+    }
+
+    @GetMapping(value = "/entity", params = {"name", "!uri"})
+    public ResponseEntity<KnowledgeBaseEntityDetail>
+    getEntityByName(@RequestParam final @NotNull CourseName course,
+                    @RequestParam final @NotNull String name) {
+        final KnowledgeBaseEntityDetail entity = this.entityService.getEntity(course.toOpedukg(),
+                                                                              name);
+        return ResponseEntity.ok(entity);
     }
 
     @GetMapping("/question")
@@ -102,11 +111,5 @@ public class OpedukgController {
     public ResponseEntity<List<RelatedEntity>>
     getRelatedEntities(@RequestParam final CourseName course, @RequestParam final String keyword) {
         throw new UnimplementedException(); // TODO
-    }
-
-    @GetMapping("/entity")
-    public ResponseEntity<Object> getEntity(@RequestParam final CourseName course,
-                                            @RequestParam final String uri) {
-        throw new UnimplementedException(); // TODO 感觉应该整合进 detail？
     }
 }
