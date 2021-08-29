@@ -1,13 +1,16 @@
 package edu.pure.server.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 
+@SuppressWarnings("LombokEqualsAndHashCodeInspection")
 @Getter
 @NoArgsConstructor
+@EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "roles")
 public class Role {

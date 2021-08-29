@@ -1,6 +1,5 @@
 package edu.pure.server.controller;
 
-import edu.pure.server.exception.AppException;
 import edu.pure.server.model.Role;
 import edu.pure.server.model.RoleName;
 import edu.pure.server.model.User;
@@ -70,14 +69,13 @@ public class AuthController {
         User user = new User(request.getName(), request.getUsername(),
                              request.getEmail(), request.getPassword());
         user.setPassword(this.passwordEncoder.encode(user.getPassword()));
-        final Role role = this.roleRepository.findByName(RoleName.ROLE_USER)
-                                             .orElseThrow(() -> new AppException(
-                                                     "User Role was not set."));
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        final Role role = this.roleRepository.findByName(RoleName.ROLE_USER).get();
         user.setRoles(Collections.singleton(role));
         user = this.userRepository.save(user);
         return ResponseEntity
                 .created(linkTo(methodOn(UserController.class)
-                                        .getOne(user.getId(), UserPrincipal.from(user)))
+                                        .getCurrentUser(UserPrincipal.from(user)))
                                  .toUri())
                 .body(new ApiResponse(true, "User registered successfully."));
     }
