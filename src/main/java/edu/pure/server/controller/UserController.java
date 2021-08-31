@@ -57,35 +57,30 @@ public class UserController {
 
     @PostMapping("/user/errorBook")
     public ResponseEntity<ApiResponse<?>>
-    addExercise(@RequestParam final @NotNull List<Integer> exerciseIds,
+    addExercise(@RequestParam final int exerciseId,
                 @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
-        exerciseIds.forEach(exerciseId -> {
-            if (!this.errorBookRepository.existsByUserIdAndExerciseId(currentUser.getId(),
-                                                                      exerciseId)) {
-                @SuppressWarnings("OptionalGetWithoutIsPresent")
-                final User user = this.userRepository.findById(currentUser.getId()).get();
-                final Exercise exercise = this.exerciseRepository
-                        .findById(exerciseId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Exercise", "id",
-                                                                         exerciseId));
-                this.errorBookRepository.save(new ErrorBookItem(user, exercise));
-            }
-        });
+        if (!this.errorBookRepository.existsByUserIdAndExerciseId(currentUser.getId(),
+                                                                  exerciseId)) {
+            @SuppressWarnings("OptionalGetWithoutIsPresent")
+            final User user = this.userRepository.findById(currentUser.getId()).get();
+            final Exercise exercise = this.exerciseRepository
+                    .findById(exerciseId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Exercise", "id", exerciseId));
+            this.errorBookRepository.save(new ErrorBookItem(user, exercise));
+        }
         return ResponseEntity.ok(ApiResponse.success());
     }
 
     @Transactional
     @DeleteMapping("/user/errorBook")
     public ResponseEntity<ApiResponse<?>>
-    deleteExercise(@RequestParam final @NotNull List<Integer> exerciseIds,
+    deleteExercise(@RequestParam final int exerciseId,
                    @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
-        exerciseIds.forEach(exerciseId -> {
-            if (!this.errorBookRepository.existsByUserIdAndExerciseId(currentUser.getId(),
-                                                                      exerciseId)) {
-                throw new ResourceNotFoundException("Exercise in error book", "id", exerciseId);
-            }
-            this.errorBookRepository.deleteByUserIdAndExerciseId(currentUser.getId(), exerciseId);
-        });
+        if (!this.errorBookRepository.existsByUserIdAndExerciseId(currentUser.getId(),
+                                                                  exerciseId)) {
+            throw new ResourceNotFoundException("Exercise in error book", "id", exerciseId);
+        }
+        this.errorBookRepository.deleteByUserIdAndExerciseId(currentUser.getId(), exerciseId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
