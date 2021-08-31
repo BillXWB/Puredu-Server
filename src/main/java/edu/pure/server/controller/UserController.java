@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @RestController
@@ -81,6 +83,29 @@ public class UserController {
             throw new ResourceNotFoundException("Exercise in error book", "id", exerciseId);
         }
         this.errorBookRepository.deleteByUserIdAndExerciseId(currentUser.getId(), exerciseId);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @Transactional
+    @PutMapping("/user/errorBook")
+    public ResponseEntity<ApiResponse<?>>
+    updateExercise(@RequestBody final @NotNull List<Integer> exerciseIds,
+                   @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
+        this.errorBookRepository.deleteByUserId(currentUser.getId());
+        exerciseIds.forEach(exerciseId -> {
+            if (!this.exerciseRepository.existsById(exerciseId)) {
+                throw new ResourceNotFoundException("Exercise", "id", exerciseId);
+            }
+        });
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        final User user = this.userRepository.findById(currentUser.getId()).get();
+        final List<ErrorBookItem> errorBook =
+                exerciseIds.stream()
+                           .map(this.exerciseRepository::findById)
+                           .map(Optional::get)
+                           .map(exercise -> new ErrorBookItem(user, exercise))
+                           .collect(Collectors.toList());
+        this.errorBookRepository.saveAll(errorBook);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
