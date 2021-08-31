@@ -54,17 +54,15 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse>
+    public ResponseEntity<ApiResponse<?>>
     registerUser(@RequestBody final @Valid @NotNull SignupRequest request) {
         if (this.userRepository.existsByUsername(request.getUsername())) {
             return ResponseEntity.badRequest()
-                                 .body(new ApiResponse(false,
-                                                       "Username is already taken!"));
+                                 .body(ApiResponse.failure("昵称已存在！"));
         }
         if (this.userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest()
-                                 .body(new ApiResponse(false,
-                                                       "Email address is already in use!"));
+                                 .body(ApiResponse.failure("邮箱已被使用！"));
         }
         User user = new User(request.getName(), request.getUsername(),
                              request.getEmail(), request.getPassword());
@@ -77,6 +75,6 @@ public class AuthController {
                 .created(linkTo(methodOn(UserController.class)
                                         .getCurrentUser(UserPrincipal.from(user)))
                                  .toUri())
-                .body(new ApiResponse(true, "User registered successfully."));
+                .body(ApiResponse.success());
     }
 }

@@ -5,6 +5,7 @@ import edu.pure.server.model.ErrorBookItem;
 import edu.pure.server.model.Exercise;
 import edu.pure.server.model.User;
 import edu.pure.server.opedukg.entity.OpedukgExercise;
+import edu.pure.server.payload.ApiResponse;
 import edu.pure.server.repository.ErrorBookRepository;
 import edu.pure.server.repository.ExerciseRepository;
 import edu.pure.server.repository.UserRepository;
@@ -55,7 +56,7 @@ public class UserController {
     }
 
     @PostMapping("/user/errorBook")
-    public ResponseEntity<?>
+    public ResponseEntity<ApiResponse<?>>
     addExercise(@RequestParam final @NotNull List<Integer> exerciseIds,
                 @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
         exerciseIds.forEach(exerciseId -> {
@@ -70,12 +71,12 @@ public class UserController {
                 this.errorBookRepository.save(new ErrorBookItem(user, exercise));
             }
         });
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
     @Transactional
     @DeleteMapping("/user/errorBook")
-    public ResponseEntity<?>
+    public ResponseEntity<ApiResponse<?>>
     deleteExercise(@RequestParam final @NotNull List<Integer> exerciseIds,
                    @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
         exerciseIds.forEach(exerciseId -> {
@@ -85,7 +86,7 @@ public class UserController {
             }
             this.errorBookRepository.deleteByUserIdAndExerciseId(currentUser.getId(), exerciseId);
         });
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
     @GetMapping("/users/{userId}")
