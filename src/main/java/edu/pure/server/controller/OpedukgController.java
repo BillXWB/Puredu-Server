@@ -11,8 +11,11 @@ import edu.pure.server.repository.ErrorBookRepository;
 import edu.pure.server.repository.ExerciseRepository;
 import edu.pure.server.repository.UserRepository;
 import edu.pure.server.security.UserPrincipal;
+import edu.pure.server.util.PageFactory;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -48,10 +51,12 @@ public class OpedukgController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<SearchResult>> search(@RequestParam final @NotNull CourseName course,
-                                                     @RequestParam final @NotNull String keyword) {
+    public ResponseEntity<Page<SearchResult>> search(@RequestParam final @NotNull CourseName course,
+                                                     @RequestParam final @NotNull String keyword,
+                                                     final Pageable pageable) {
         final List<SearchResult> results = this.searchService.search(course.toOpedukg(), keyword);
-        return ResponseEntity.ok(results);
+        final Page<SearchResult> page = PageFactory.fromList(results, pageable);
+        return ResponseEntity.ok(page);
     }
 
     @GetMapping(value = "/entity", params = {"uri", "!name"})
