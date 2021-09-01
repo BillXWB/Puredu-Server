@@ -5,7 +5,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import edu.pure.server.opedukg.entity.*;
+import edu.pure.server.opedukg.entity.EntityPropertyDetail;
+import edu.pure.server.opedukg.entity.EntityRelation;
+import edu.pure.server.opedukg.entity.KnowledgeBaseEntity;
+import edu.pure.server.opedukg.entity.KnowledgeBaseEntityDetail;
 import edu.pure.server.opedukg.payload.OpedukgResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,7 +24,6 @@ public class EntityService {
     private static final String URL = "/api/typeOpen/open/infoByInstanceName";
 
     private final OpedukgClientLoggedIn client;
-    private final SearchService searchService;
 
     public KnowledgeBaseEntityDetail getEntity(final String course, final String entityName) {
         final OpedukgResponse<Data> response = this.client.get(EntityService.URL,
@@ -48,13 +50,8 @@ public class EntityService {
                                                                                   c.getEntityLabel(),
                                                                                   c.getEntity()))
                                                                   ).collect(Collectors.toList())));
-        final SearchResult searchResult =
-                this.searchService.search(course, entityName).stream()
-                                  .filter(result -> result.getEntity().getName().equals(entityName))
-                                  .findAny()
-                                  .orElseThrow(); // TODO
         return new KnowledgeBaseEntityDetail(response.getData().getLabel(),
-                                             searchResult.getEntity().getUri(),
+                                             response.getData().getUri(),
                                              properties,
                                              entities.get(Data.Content.RelationType.OBJECT),
                                              entities.get(Data.Content.RelationType.SUBJECT));
@@ -65,6 +62,7 @@ public class EntityService {
     @Getter
     private static class Data {
         private String label;
+        private String uri;
         private List<Property> property;
         private List<Content> content;
 
