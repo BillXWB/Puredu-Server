@@ -9,15 +9,15 @@ import java.util.Map;
 
 @AllArgsConstructor
 @Service
-public class LoginService {
+class LoginService {
     private static final String URL = "/api/typeAuth/user/login";
 
     private final OpedukgClient client;
 
-    public String login(final String phoneNumber, final String password) {
-        final Response response = this.client.postWithoutId(LoginService.URL, Response.class,
-                                                            Map.of("phone", phoneNumber,
-                                                                   "password", password));
+    String login(final String phoneNumber, final String password) {
+        final Response response = this.client.post(LoginService.URL, Response.class,
+                                                   Map.of("phone", phoneNumber,
+                                                          "password", password));
         return response.getId();
     }
 

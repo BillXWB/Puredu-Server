@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class RecognizeService {
     private static final String URL = "/api/typeOpen/open/linkInstance";
 
-    private final OpedukgClient client;
+    private final OpedukgClientLoggedIn client;
 
     public List<RecognitionResult> recognize(final String course, final String text) {
         final OpedukgResponse<Data> response = this.client.post(RecognizeService.URL,

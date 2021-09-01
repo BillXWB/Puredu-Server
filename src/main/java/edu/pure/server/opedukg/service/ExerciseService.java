@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class ExerciseService {
     private static final String URL = "/api/typeOpen/open/questionListByUriName";
 
-    private final OpedukgClient client;
+    private final OpedukgClientLoggedIn client;
 
     public List<OpedukgExercise> getExercise(final String entityName) {
         final OpedukgResponse<List<Data>> response = this.client.get(ExerciseService.URL,

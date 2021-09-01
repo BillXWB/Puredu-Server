@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class EntityService {
     private static final String URL = "/api/typeOpen/open/infoByInstanceName";
 
-    private final OpedukgClient client;
+    private final OpedukgClientLoggedIn client;
     private final SearchService searchService;
 
     public KnowledgeBaseEntityDetail getEntity(final String course, final String entityName) {

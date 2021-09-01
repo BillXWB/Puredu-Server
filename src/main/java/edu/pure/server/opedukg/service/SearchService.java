@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class SearchService {
     private static final String URL = "/api/typeOpen/open/instanceList";
 
-    private final OpedukgClient client;
+    private final OpedukgClientLoggedIn client;
 
     public List<SearchResult> search(final String course, final String keyword) {
         final OpedukgResponse<List<Data>> response = this.client.get(SearchService.URL,

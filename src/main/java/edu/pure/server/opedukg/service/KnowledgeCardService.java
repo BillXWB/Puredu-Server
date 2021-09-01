@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class KnowledgeCardService {
     private static final String URL = "/api/typeOpen/open/getKnowledgeCard";
 
-    private final OpedukgClient client;
+    private final OpedukgClientLoggedIn client;
 
     public KnowledgeCard getKnowledgeCard(final String course, final String uri) {
         final OpedukgResponse<Data> response =
