@@ -15,6 +15,6 @@ postgres=# \i src/main/sql/database.sql
 # suppress inspection "UnusedProperty"
 spring.datasource.password=
 
-opedukg-service.id=
+opedukg-client.login-service.phone-number=
+opedukg-client.login-service.password=
 ```
-
