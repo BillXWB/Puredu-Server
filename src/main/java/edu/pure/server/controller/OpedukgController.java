@@ -35,6 +35,7 @@ public class OpedukgController {
     private final EntityService entityService;
     private final RecognizeService recognizeService;
     private final ExerciseService exerciseService;
+    private final QuestionService questionService;
     private final KnowledgeCardService knowledgeCardService;
 
     private final UserRepository userRepository;
@@ -68,9 +69,12 @@ public class OpedukgController {
     }
 
     @GetMapping("/question")
-    public ResponseEntity<OpedukgAnswer> question(@RequestParam final CourseName course,
-                                                  @RequestParam final String question) {
-        throw new UnimplementedException(); // TODO
+    public ResponseEntity<List<OpedukgAnswer>>
+    question(@RequestParam final @NotNull CourseName course,
+             @RequestParam final String question) {
+        final List<OpedukgAnswer> answers = this.questionService.askQuestion(course.toOpedukg(),
+                                                                             question);
+        return ResponseEntity.ok(answers);
     }
 
     @GetMapping("/recognize")
