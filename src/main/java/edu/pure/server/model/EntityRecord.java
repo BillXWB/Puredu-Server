@@ -18,6 +18,6 @@ public class EntityRecord extends DateAudit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String entityName;
-    private CourseName courseName;
+    private String name;
+    private CourseName course;
 }

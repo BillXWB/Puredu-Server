@@ -116,8 +116,7 @@ public class UserController {
         final User user = this.userRepository.getById(currentUser.getId());
         final List<KnowledgeBaseEntityDetail> entities =
                 user.getBrowsingHistory().stream()
-                    .map(r -> this.entityService.getEntity(r.getCourseName().toOpedukg(),
-                                                           r.getEntityName()))
+                    .map(r -> this.entityService.getEntity(r.getCourse().toOpedukg(), r.getName()))
                     .collect(Collectors.toList());
         return ResponseEntity.ok(entities);
     }
@@ -141,8 +140,7 @@ public class UserController {
         final User user = this.userRepository.getById(currentUser.getId());
         final List<KnowledgeBaseEntity> entities =
                 user.getFavorites().stream()
-                    .map(r -> this.entityService.getEntity(r.getCourseName().toOpedukg(),
-                                                           r.getEntityName()))
+                    .map(r -> this.entityService.getEntity(r.getCourse().toOpedukg(), r.getName()))
                     .map(KnowledgeBaseEntityDetail::toSuper)
                     .collect(Collectors.toList());
         return ResponseEntity.ok(entities);
