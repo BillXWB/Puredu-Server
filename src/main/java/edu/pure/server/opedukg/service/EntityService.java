@@ -50,11 +50,13 @@ public class EntityService {
                                                                                   c.getEntityLabel(),
                                                                                   c.getEntity()))
                                                                   ).collect(Collectors.toList())));
-        return new KnowledgeBaseEntityDetail(response.getData().getLabel(),
-                                             response.getData().getUri(),
-                                             properties,
-                                             entities.get(Data.Content.RelationType.OBJECT),
-                                             entities.get(Data.Content.RelationType.SUBJECT));
+        return new KnowledgeBaseEntityDetail(
+                response.getData().getLabel(),
+                response.getData().getUri(),
+                properties,
+                entities.getOrDefault(Data.Content.RelationType.OBJECT, List.of()),
+                entities.getOrDefault(Data.Content.RelationType.SUBJECT, List.of())
+        );
     }
 
     private static class Response extends OpedukgResponse<Data> {}
