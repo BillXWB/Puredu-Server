@@ -9,14 +9,13 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
-    Optional<Role> findByName(RoleName roleName);
-
     boolean existsByName(RoleName roleName);
+
+    Role getByName(RoleName roleUser);
 }
 
 @AllArgsConstructor

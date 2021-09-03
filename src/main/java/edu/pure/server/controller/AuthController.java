@@ -67,8 +67,7 @@ public class AuthController {
         User user = new User(request.getName(), request.getUsername(),
                              request.getEmail(), request.getPassword());
         user.setPassword(this.passwordEncoder.encode(user.getPassword()));
-        @SuppressWarnings("OptionalGetWithoutIsPresent")
-        final Role role = this.roleRepository.findByName(RoleName.ROLE_USER).get();
+        final Role role = this.roleRepository.getByName(RoleName.ROLE_USER);
         user.setRoles(Collections.singleton(role));
         user = this.userRepository.save(user);
         return ResponseEntity

@@ -94,8 +94,7 @@ public class OpedukgController {
         this.exerciseRepository.saveAll(exercises.stream()
                                                  .map(Exercise::fromOpedukg)
                                                  .collect(Collectors.toList()));
-        @SuppressWarnings("OptionalGetWithoutIsPresent")
-        final User user = this.userRepository.findById(currentUser.getId()).get();
+        final User user = this.userRepository.getById(currentUser.getId());
         exercises = exercises.stream()
                              .map(exercise -> new OpedukgExercise(exercise) {
                                  public final boolean marked =

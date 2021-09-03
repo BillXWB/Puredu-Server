@@ -1,11 +1,15 @@
 package edu.pure.server.controller;
 
 import edu.pure.server.exception.ResourceNotFoundException;
+import edu.pure.server.model.EntityRecord;
 import edu.pure.server.model.ErrorBookItem;
 import edu.pure.server.model.Exercise;
 import edu.pure.server.model.User;
+import edu.pure.server.opedukg.entity.KnowledgeBaseEntityDetail;
 import edu.pure.server.opedukg.entity.OpedukgExercise;
+import edu.pure.server.opedukg.service.EntityService;
 import edu.pure.server.payload.ApiResponse;
+import edu.pure.server.repository.EntityRecordRepository;
 import edu.pure.server.repository.ErrorBookRepository;
 import edu.pure.server.repository.ExerciseRepository;
 import edu.pure.server.repository.UserRepository;
@@ -20,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,15 +35,17 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 @RolesAllowed("USER")
 public class UserController {
+    private final EntityService entityService;
+
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
     private final ErrorBookRepository errorBookRepository;
+    private final EntityRecordRepository entityRecordRepository;
 
     @GetMapping("/user/me")
     public ResponseEntity<Map<String, Object>>
     getCurrentUser(@AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
-        @SuppressWarnings("OptionalGetWithoutIsPresent")
-        final User user = this.userRepository.findById(currentUser.getId()).get();
+        final User user = this.userRepository.getById(currentUser.getId());
         return ResponseEntity.ok(Map.of("id", user.getId(),
                                         "name", user.getName(),
                                         "username", user.getUsername(),
@@ -63,8 +70,7 @@ public class UserController {
                 @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
         if (!this.errorBookRepository.existsByUserIdAndExerciseId(currentUser.getId(),
                                                                   exerciseId)) {
-            @SuppressWarnings("OptionalGetWithoutIsPresent")
-            final User user = this.userRepository.findById(currentUser.getId()).get();
+            final User user = this.userRepository.getById(currentUser.getId());
             final Exercise exercise = this.exerciseRepository
                     .findById(exerciseId)
                     .orElseThrow(() -> new ResourceNotFoundException("Exercise", "id", exerciseId));
@@ -97,8 +103,7 @@ public class UserController {
                 throw new ResourceNotFoundException("Exercise", "id", exerciseId);
             }
         });
-        @SuppressWarnings("OptionalGetWithoutIsPresent")
-        final User user = this.userRepository.findById(currentUser.getId()).get();
+        final User user = this.userRepository.getById(currentUser.getId());
         final List<ErrorBookItem> errorBook =
                 exerciseIds.stream()
                            .map(this.exerciseRepository::findById)
@@ -106,6 +111,31 @@ public class UserController {
                            .map(exercise -> new ErrorBookItem(user, exercise))
                            .collect(Collectors.toList());
         this.errorBookRepository.saveAll(errorBook);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/user/browsingHistory")
+    public ResponseEntity<List<KnowledgeBaseEntityDetail>>
+    getBrowsingHistory(@AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
+        final User user = this.userRepository.getById(currentUser.getId());
+        final List<KnowledgeBaseEntityDetail> entities =
+                user.getBrowsingHistory().stream()
+                    .map(r -> this.entityService.getEntity(r.getCourseName().toOpedukg(),
+                                                           r.getEntityName()))
+                    .collect(Collectors.toList());
+        return ResponseEntity.ok(entities);
+    }
+
+    @Transactional
+    @PutMapping("/user/browsingHistory")
+    public ResponseEntity<ApiResponse<?>>
+    updateBrowsingHistory(@RequestBody final @NotNull List<EntityRecord> browsingHistory,
+                          @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
+        final User user = this.userRepository.getById(currentUser.getId());
+        this.entityRecordRepository.deleteAll(user.getBrowsingHistory());
+        user.setBrowsingHistory(new HashSet<>(browsingHistory));
+        this.userRepository.save(user);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
