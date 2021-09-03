@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -51,11 +52,11 @@ public class User extends DateAudit {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
-    private Set<EntityRecord> browsingHistory = Set.of();
+    private List<BrowsingHistoryItem> browsingHistory = List.of();
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
-    private Set<EntityRecord> favorites = Set.of();
+    private List<FavoriteItem> favorites = List.of();
 
     public User(final String name, final String username,
                 final String email, final String password) {

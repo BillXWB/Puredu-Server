@@ -1,13 +1,19 @@
 package edu.pure.server.model;
 
+import edu.pure.server.model.audit.DateAudit;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import javax.persistence.*;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
 
+@SuppressWarnings("LombokEqualsAndHashCodeInspection")
 @Getter
-@Entity
-@Table(name = "entity_records")
-public class EntityRecord {
+@EqualsAndHashCode(of = "id", callSuper = false)
+@MappedSuperclass
+public class EntityRecord extends DateAudit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;

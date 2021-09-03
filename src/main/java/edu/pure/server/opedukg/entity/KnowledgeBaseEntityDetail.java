@@ -19,4 +19,8 @@ public class KnowledgeBaseEntityDetail extends KnowledgeBaseEntity {
         this.objects = objects;
         this.subjects = subjects;
     }
+
+    public KnowledgeBaseEntity toSuper() {
+        return new KnowledgeBaseEntity(this.getName(), this.getUri());
+    }
 }

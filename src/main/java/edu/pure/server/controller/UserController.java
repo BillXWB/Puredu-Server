@@ -1,18 +1,13 @@
 package edu.pure.server.controller;
 
 import edu.pure.server.exception.ResourceNotFoundException;
-import edu.pure.server.model.EntityRecord;
-import edu.pure.server.model.ErrorBookItem;
-import edu.pure.server.model.Exercise;
-import edu.pure.server.model.User;
+import edu.pure.server.model.*;
+import edu.pure.server.opedukg.entity.KnowledgeBaseEntity;
 import edu.pure.server.opedukg.entity.KnowledgeBaseEntityDetail;
 import edu.pure.server.opedukg.entity.OpedukgExercise;
 import edu.pure.server.opedukg.service.EntityService;
 import edu.pure.server.payload.ApiResponse;
-import edu.pure.server.repository.EntityRecordRepository;
-import edu.pure.server.repository.ErrorBookRepository;
-import edu.pure.server.repository.ExerciseRepository;
-import edu.pure.server.repository.UserRepository;
+import edu.pure.server.repository.*;
 import edu.pure.server.security.UserPrincipal;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,7 +34,8 @@ public class UserController {
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
     private final ErrorBookRepository errorBookRepository;
-    private final EntityRecordRepository entityRecordRepository;
+    private final BrowsingHistoryItemRepository browsingHistoryItemRepository;
+    private final FavoriteItemRepository favoriteItemRepository;
 
     @GetMapping("/user/me")
     public ResponseEntity<Map<String, Object>>
@@ -130,11 +125,37 @@ public class UserController {
     @Transactional
     @PutMapping("/user/browsingHistory")
     public ResponseEntity<ApiResponse<?>>
-    updateBrowsingHistory(@RequestBody final @NotNull List<EntityRecord> browsingHistory,
+    updateBrowsingHistory(@RequestBody final @NotNull List<BrowsingHistoryItem> browsingHistory,
                           @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
         final User user = this.userRepository.getById(currentUser.getId());
-        this.entityRecordRepository.deleteAll(user.getBrowsingHistory());
-        user.setBrowsingHistory(new HashSet<>(browsingHistory));
+        this.browsingHistoryItemRepository.deleteAll(user.getBrowsingHistory());
+        user.setBrowsingHistory(browsingHistory);
+        this.userRepository.save(user);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/user/favorites")
+    public ResponseEntity<List<KnowledgeBaseEntity>>
+    getFavorites(@AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
+        final User user = this.userRepository.getById(currentUser.getId());
+        final List<KnowledgeBaseEntity> entities =
+                user.getFavorites().stream()
+                    .map(r -> this.entityService.getEntity(r.getCourseName().toOpedukg(),
+                                                           r.getEntityName()))
+                    .map(KnowledgeBaseEntityDetail::toSuper)
+                    .collect(Collectors.toList());
+        return ResponseEntity.ok(entities);
+    }
+
+    @Transactional
+    @PutMapping("/user/favorites")
+    public ResponseEntity<ApiResponse<?>>
+    updateFavorites(@RequestBody final @NotNull List<FavoriteItem> favorites,
+                    @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
+        final User user = this.userRepository.getById(currentUser.getId());
+        this.favoriteItemRepository.deleteAll(user.getFavorites());
+        user.setFavorites(favorites);
         this.userRepository.save(user);
         return ResponseEntity.ok(ApiResponse.success());
     }
