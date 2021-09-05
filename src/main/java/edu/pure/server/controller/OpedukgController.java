@@ -86,6 +86,7 @@ public class OpedukgController {
                                          .collect(Collectors.toList());
         Collections.shuffle(results);
         results = results.stream()
+                         .distinct()
                          .limit(size)
                          .collect(Collectors.toList());
         return ResponseEntity.ok(results);
