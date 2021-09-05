@@ -13,6 +13,7 @@ import edu.pure.server.security.UserPrincipal;
 import edu.pure.server.util.PageFactory;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.security.RolesAllowed;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -41,6 +42,9 @@ public class OpedukgController {
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
     private final ErrorBookRepository errorBookRepository;
+
+    @Value("#{${opedukg-controller.keywords}}")
+    private Map<CourseName, Set<String>> keywords;
 
     @GetMapping("/search")
     public ResponseEntity<Page<SearchResult>> search(@RequestParam final @NotNull CourseName course,
@@ -66,6 +70,25 @@ public class OpedukgController {
         final KnowledgeBaseEntityDetail entity = this.entityService.getEntity(course.toOpedukg(),
                                                                               name);
         return ResponseEntity.ok(entity);
+    }
+
+    @GetMapping("/entities")
+    public ResponseEntity<List<SearchResult>>
+    getEntities(@RequestParam final @NotNull CourseName course,
+                @RequestParam final int size) {
+        final List<String> list = new ArrayList<>(this.keywords.get(course));
+        Collections.shuffle(list);
+        List<SearchResult> results = list.stream()
+                                         .limit(Math.max(size / 2, 1))
+                                         .flatMap(k -> this.searchService.search(course.toOpedukg(),
+                                                                                 k)
+                                                                         .stream())
+                                         .collect(Collectors.toList());
+        Collections.shuffle(results);
+        results = results.stream()
+                         .limit(size)
+                         .collect(Collectors.toList());
+        return ResponseEntity.ok(results);
     }
 
     @GetMapping("/question")
