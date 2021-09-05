@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import edu.pure.server.opedukg.entity.KnowledgeBaseEntity;
 import edu.pure.server.opedukg.entity.RecognitionResult;
+import edu.pure.server.opedukg.entity.SearchResult;
 import edu.pure.server.opedukg.payload.OpedukgResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,7 +28,9 @@ public class RecognizeService {
                                                                        "context", text));
         return response.getData().getResults().stream()
                        .map(r -> new RecognitionResult(
-                               new KnowledgeBaseEntity(r.getEntity(), r.getEntityUrl()),
+                               new SearchResult(new KnowledgeBaseEntity(r.getEntity(),
+                                                                        r.getEntityUrl()),
+                                                r.getEntityType()),
                                new RecognitionResult.Index(r.getStartIndex(), r.getEndIndex()))
                        ).collect(Collectors.toList());
     }

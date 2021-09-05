@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class RecognitionResult {
-    private final KnowledgeBaseEntity entity;
+    private final SearchResult result;
     private final Index index;
 
     @Getter

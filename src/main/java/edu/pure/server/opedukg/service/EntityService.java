@@ -5,10 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import edu.pure.server.opedukg.entity.EntityPropertyDetail;
-import edu.pure.server.opedukg.entity.EntityRelation;
-import edu.pure.server.opedukg.entity.KnowledgeBaseEntity;
-import edu.pure.server.opedukg.entity.KnowledgeBaseEntityDetail;
+import edu.pure.server.opedukg.entity.*;
 import edu.pure.server.opedukg.payload.OpedukgResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -24,6 +22,8 @@ public class EntityService {
     private static final String URL = "/api/typeOpen/open/infoByInstanceName";
 
     private final OpedukgClientLoggedIn client;
+    private final SearchService searchService;
+    private final RecognizeService recognizeService;
 
     public KnowledgeBaseEntityDetail getEntity(final String course, final String entityName) {
         final OpedukgResponse<Data> response = this.client.get(EntityService.URL,
@@ -57,6 +57,22 @@ public class EntityService {
                 entities.getOrDefault(Data.Content.RelationType.OBJECT, List.of()),
                 entities.getOrDefault(Data.Content.RelationType.SUBJECT, List.of())
         );
+    }
+
+    public String getCategory(final String course, final String entityName) {
+        final Optional<String> category = this.searchService.search(course, entityName).stream()
+                                                            .filter(r -> r.getEntity().getName()
+                                                                          .equals(entityName))
+                                                            .map(SearchResult::getCategory)
+                                                            .findAny();
+        return category
+                .orElseGet(() -> this.recognizeService.recognize(course, entityName).stream()
+                                                      .map(RecognitionResult::getResult)
+                                                      .filter(result -> result.getEntity().getName()
+                                                                              .equals(entityName))
+                                                      .map(SearchResult::getCategory)
+                                                      .findAny()
+                                                      .orElse(""));
     }
 
     private static class Response extends OpedukgResponse<Data> {}

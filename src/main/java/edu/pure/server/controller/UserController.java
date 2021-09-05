@@ -2,9 +2,9 @@ package edu.pure.server.controller;
 
 import edu.pure.server.exception.ResourceNotFoundException;
 import edu.pure.server.model.*;
-import edu.pure.server.opedukg.entity.KnowledgeBaseEntity;
 import edu.pure.server.opedukg.entity.KnowledgeBaseEntityDetail;
 import edu.pure.server.opedukg.entity.OpedukgExercise;
+import edu.pure.server.opedukg.entity.SearchResult;
 import edu.pure.server.opedukg.service.EntityService;
 import edu.pure.server.payload.ApiResponse;
 import edu.pure.server.repository.*;
@@ -135,13 +135,16 @@ public class UserController {
 
     @Transactional(readOnly = true)
     @GetMapping("/user/favorites")
-    public ResponseEntity<List<KnowledgeBaseEntity>>
+    public ResponseEntity<List<SearchResult>>
     getFavorites(@AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
         final User user = this.userRepository.getById(currentUser.getId());
-        final List<KnowledgeBaseEntity> entities =
+        final List<SearchResult> entities =
                 user.getFavorites().stream()
-                    .map(r -> this.entityService.getEntity(r.getCourse().toOpedukg(), r.getName()))
-                    .map(KnowledgeBaseEntityDetail::toSuper)
+                    .map(r -> new SearchResult(
+                            this.entityService.getEntity(r.getCourse().toOpedukg(), r.getName())
+                                              .toSuper(),
+                            this.entityService.getCategory(r.getCourse().toOpedukg(), r.getName()))
+                    )
                     .collect(Collectors.toList());
         return ResponseEntity.ok(entities);
     }
