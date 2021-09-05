@@ -53,6 +53,7 @@ public class EntityService {
         return new KnowledgeBaseEntityDetail(
                 response.getData().getLabel(),
                 response.getData().getUri(),
+                this.getCategory(course, entityName),
                 properties,
                 entities.getOrDefault(Data.Content.RelationType.OBJECT, List.of()),
                 entities.getOrDefault(Data.Content.RelationType.SUBJECT, List.of())

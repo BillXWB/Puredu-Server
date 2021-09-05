@@ -4,9 +4,10 @@ import edu.pure.server.exception.ResourceNotFoundException;
 import edu.pure.server.model.*;
 import edu.pure.server.opedukg.entity.KnowledgeBaseEntityDetail;
 import edu.pure.server.opedukg.entity.OpedukgExercise;
-import edu.pure.server.opedukg.entity.SearchResult;
 import edu.pure.server.opedukg.service.EntityService;
 import edu.pure.server.payload.ApiResponse;
+import edu.pure.server.payload.BrowsingHistoryResponse;
+import edu.pure.server.payload.FavoriteResponse;
 import edu.pure.server.repository.*;
 import edu.pure.server.security.UserPrincipal;
 import lombok.AllArgsConstructor;
@@ -111,12 +112,15 @@ public class UserController {
 
     @Transactional(readOnly = true)
     @GetMapping("/user/browsingHistory")
-    public ResponseEntity<List<KnowledgeBaseEntityDetail>>
+    public ResponseEntity<List<BrowsingHistoryResponse>>
     getBrowsingHistory(@AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
         final User user = this.userRepository.getById(currentUser.getId());
-        final List<KnowledgeBaseEntityDetail> entities =
+        final List<BrowsingHistoryResponse> entities =
                 user.getBrowsingHistory().stream()
-                    .map(r -> this.entityService.getEntity(r.getCourse().toOpedukg(), r.getName()))
+                    .map(r -> new BrowsingHistoryResponse(
+                            this.entityService.getEntity(r.getCourse().toOpedukg(), r.getName()),
+                            r.getCourse())
+                    )
                     .collect(Collectors.toList());
         return ResponseEntity.ok(entities);
     }
@@ -135,16 +139,18 @@ public class UserController {
 
     @Transactional(readOnly = true)
     @GetMapping("/user/favorites")
-    public ResponseEntity<List<SearchResult>>
+    public ResponseEntity<List<FavoriteResponse>>
     getFavorites(@AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
         final User user = this.userRepository.getById(currentUser.getId());
-        final List<SearchResult> entities =
+        final List<FavoriteResponse> entities =
                 user.getFavorites().stream()
-                    .map(r -> new SearchResult(
-                            this.entityService.getEntity(r.getCourse().toOpedukg(), r.getName())
-                                              .toSuper(),
-                            this.entityService.getCategory(r.getCourse().toOpedukg(), r.getName()))
-                    )
+                    .map(r -> {
+                        final KnowledgeBaseEntityDetail entity =
+                                this.entityService.getEntity(r.getCourse().toOpedukg(),
+                                                             r.getName());
+                        return new FavoriteResponse(entity.toSuper(), r.getCourse(),
+                                                    entity.getCategory());
+                    })
                     .collect(Collectors.toList());
         return ResponseEntity.ok(entities);
     }
