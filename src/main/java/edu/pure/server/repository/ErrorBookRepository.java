@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface ErrorBookRepository extends JpaRepository<ErrorBookItem, Long> {
     boolean existsByUserIdAndExerciseId(long userId, int exerciseId);
 
@@ -13,4 +15,6 @@ public interface ErrorBookRepository extends JpaRepository<ErrorBookItem, Long> 
     void deleteByUserIdAndExerciseId(long userId, int exerciseId);
 
     Page<ErrorBookItem> findAllByUserIdOrderByCreatedAtDesc(long userId, Pageable pageable);
+
+    List<ErrorBookItem> findAllByUserId(long userId);
 }

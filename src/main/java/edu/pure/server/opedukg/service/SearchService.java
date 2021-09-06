@@ -23,6 +23,9 @@ public class SearchService {
                                                                      Response.class,
                                                                      Map.of("course", course,
                                                                             "searchKey", keyword));
+        if (response.getData() == null) {
+            return List.of();
+        }
         return response.getData().stream()
                        .map(d -> new SearchResult(new KnowledgeBaseEntity(d.getLabel(), d.getUri()),
                                                   d.getCategory())

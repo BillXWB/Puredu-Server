@@ -3,6 +3,7 @@ package edu.pure.server.opedukg.entity;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import net.minidev.json.annotate.JsonIgnore;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(of = "id")
 @MappedSuperclass
 public class OpedukgExercise {
+    @JsonIgnore
     @Id
     private int id;
 

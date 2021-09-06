@@ -5,6 +5,8 @@ import edu.pure.server.model.*;
 import edu.pure.server.opedukg.entity.KnowledgeBaseEntityDetail;
 import edu.pure.server.opedukg.entity.OpedukgExercise;
 import edu.pure.server.opedukg.service.EntityService;
+import edu.pure.server.opedukg.service.ExerciseService;
+import edu.pure.server.opedukg.service.SearchService;
 import edu.pure.server.payload.ApiResponse;
 import edu.pure.server.payload.BrowsingHistoryResponse;
 import edu.pure.server.payload.FavoriteResponse;
@@ -12,6 +14,7 @@ import edu.pure.server.repository.*;
 import edu.pure.server.security.UserPrincipal;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -20,23 +23,29 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api")
 @RolesAllowed("USER")
 public class UserController {
+    private final SearchService searchService;
     private final EntityService entityService;
+    private final ExerciseService exerciseService;
 
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
     private final ErrorBookRepository errorBookRepository;
     private final BrowsingHistoryItemRepository browsingHistoryItemRepository;
     private final FavoriteItemRepository favoriteItemRepository;
+
+    @Value("${user-controller.exercise-entity-names}")
+    private List<String> exerciseEntityNames;
 
     @GetMapping("/user/me")
     public ResponseEntity<Map<String, Object>>
@@ -114,26 +123,24 @@ public class UserController {
     @GetMapping("/user/browsingHistory")
     public ResponseEntity<List<BrowsingHistoryResponse>>
     getBrowsingHistory(@AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
-        final User user = this.userRepository.getById(currentUser.getId());
         final List<BrowsingHistoryResponse> entities =
-                user.getBrowsingHistory().stream()
-                    .map(r -> new BrowsingHistoryResponse(
-                            this.entityService.getEntity(r.getCourse().toOpedukg(), r.getName()),
-                            r.getCourse())
-                    )
-                    .collect(Collectors.toList());
+                this.browsingHistoryItemRepository.findAllByUserId(currentUser.getId()).stream()
+                                                  .map(r -> new BrowsingHistoryResponse(
+                                                          this.entityService.getEntity(
+                                                                  r.getCourse().toOpedukg(),
+                                                                  r.getName()),
+                                                          r.getCourse())
+                                                  )
+                                                  .collect(Collectors.toList());
         return ResponseEntity.ok(entities);
     }
 
     @Transactional
     @PutMapping("/user/browsingHistory")
     public ResponseEntity<ApiResponse<?>>
-    updateBrowsingHistory(@RequestBody final @NotNull List<BrowsingHistoryItem> browsingHistory,
-                          @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
-        final User user = this.userRepository.getById(currentUser.getId());
-        this.browsingHistoryItemRepository.deleteAll(user.getBrowsingHistory());
-        user.setBrowsingHistory(browsingHistory);
-        this.userRepository.save(user);
+    updateBrowsingHistory(@RequestBody final @SuppressWarnings("unused") @NotNull
+                                  List<BrowsingHistoryItem> browsingHistory) {
+        // 前后端分别独立记录，后端在 `OpedukgController::getEntityByName` 已经记录
         return ResponseEntity.ok(ApiResponse.success());
     }
 
@@ -141,17 +148,18 @@ public class UserController {
     @GetMapping("/user/favorites")
     public ResponseEntity<List<FavoriteResponse>>
     getFavorites(@AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
-        final User user = this.userRepository.getById(currentUser.getId());
         final List<FavoriteResponse> entities =
-                user.getFavorites().stream()
-                    .map(r -> {
-                        final KnowledgeBaseEntityDetail entity =
-                                this.entityService.getEntity(r.getCourse().toOpedukg(),
-                                                             r.getName());
-                        return new FavoriteResponse(entity.toSuper(), r.getCourse(),
-                                                    entity.getCategory());
-                    })
-                    .collect(Collectors.toList());
+                this.favoriteItemRepository.findAllByUserId(currentUser.getId()).stream()
+                                           .map(r -> {
+                                               final KnowledgeBaseEntityDetail entity =
+                                                       this.entityService.getEntity(
+                                                               r.getCourse().toOpedukg(),
+                                                               r.getName());
+                                               return new FavoriteResponse(entity.toSuper(),
+                                                                           r.getCourse(),
+                                                                           entity.getCategory());
+                                           })
+                                           .collect(Collectors.toList());
         return ResponseEntity.ok(entities);
     }
 
@@ -160,11 +168,79 @@ public class UserController {
     public ResponseEntity<ApiResponse<?>>
     updateFavorites(@RequestBody final @NotNull List<FavoriteItem> favorites,
                     @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
+        this.favoriteItemRepository.deleteAllByUserId(currentUser.getId());
         final User user = this.userRepository.getById(currentUser.getId());
-        this.favoriteItemRepository.deleteAll(user.getFavorites());
-        user.setFavorites(favorites);
-        this.userRepository.save(user);
+        favorites.forEach(f -> f.setUser(user));
+        this.favoriteItemRepository.saveAll(favorites);
         return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/user/exercises")
+    public ResponseEntity<?>
+    getExercises(final int size,
+                 @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
+        // TODO: 对试题搜索结果进行缓存，以优化性能。
+        //  由于错题本的题目必须存在于数据库中，所以此处返回的错题也需要加入数据库。
+        final List<BrowsingHistoryItem> browsingHistory =
+                this.browsingHistoryItemRepository.findAllByUserId(currentUser.getId());
+        final var exercises = new HashSet<OpedukgExercise>();
+        final BiFunction<String, Integer, Stream<OpedukgExercise>> exerciseSupplier =
+                (entityName, limit) -> this.exerciseService.getExercise(entityName)
+                                                           .stream()
+                                                           .filter(Predicate.not(
+                                                                   exercises::contains))
+                                                           .limit(limit);
+        if (!browsingHistory.isEmpty()) {
+            final var weights = new ArrayList<Integer>(browsingHistory.size());
+            int sum = 0;
+            for (final var h : browsingHistory) {
+                sum += h.getCount();
+                weights.add(sum);
+            }
+            final var random = new Random();
+            for (int tried = 0; tried < 3 * size && exercises.size() < size * 0.7; ++tried) {
+                int index = Collections.binarySearch(weights, random.nextInt(sum));
+                if (index < 0) {
+                    index = -1 - index;
+                }
+                exerciseSupplier.apply(browsingHistory.get(index).getName(),
+                                       Math.min(5, Math.max(1, size / 4)))
+                                .forEach(exercises::add);
+            }
+        }
+        final var random = new Random();
+        if (exercises.size() < size) {
+            this.errorBookRepository.findAllByUserId(currentUser.getId()).stream()
+                                    .map(ErrorBookItem::getExercise)
+                                    .map(OpedukgExercise.class::cast)
+                                    .filter(Predicate.not(exercises::contains))
+                                    .collect(Collectors.collectingAndThen(
+                                            Collectors.toList(),
+                                            list -> {
+                                                Collections.shuffle(list);
+                                                return list;
+                                            }
+                                    )).stream()
+                                    .takeWhile(e -> random.nextDouble() < 0.2)
+                                    .forEach(exercises::add);
+        }
+        for (int tried = 0; tried < 3 * size && exercises.size() < size; ++tried) {
+            final String entityName =
+                    this.exerciseEntityNames.get(random.nextInt(this.exerciseEntityNames.size()));
+            exerciseSupplier.apply(entityName, Math.max(1, size / 3))
+                            .forEach(exercises::add);
+        }
+        return ResponseEntity.ok(exercises.stream()
+                                          .limit(size)
+                                          .collect(Collectors.collectingAndThen(
+                                                  Collectors.toList(),
+                                                  list -> {
+                                                      Collections.shuffle(list);
+                                                      return list;
+                                                  }
+                                          ))
+        );
     }
 
     @GetMapping("/users/{userId}")

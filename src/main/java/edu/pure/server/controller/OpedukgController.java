@@ -1,11 +1,13 @@
 package edu.pure.server.controller;
 
 import edu.pure.server.exception.UnimplementedException;
+import edu.pure.server.model.BrowsingHistoryItem;
 import edu.pure.server.model.CourseName;
 import edu.pure.server.model.Exercise;
 import edu.pure.server.model.User;
 import edu.pure.server.opedukg.entity.*;
 import edu.pure.server.opedukg.service.*;
+import edu.pure.server.repository.BrowsingHistoryItemRepository;
 import edu.pure.server.repository.ErrorBookRepository;
 import edu.pure.server.repository.ExerciseRepository;
 import edu.pure.server.repository.UserRepository;
@@ -42,6 +44,7 @@ public class OpedukgController {
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
     private final ErrorBookRepository errorBookRepository;
+    private final BrowsingHistoryItemRepository browsingHistoryItemRepository;
 
     @Value("#{${opedukg-controller.keywords}}")
     private Map<CourseName, Set<String>> keywords;
@@ -57,18 +60,27 @@ public class OpedukgController {
 
     @GetMapping(value = "/entity", params = {"uri", "!name"})
     public ResponseEntity<KnowledgeBaseEntityDetail>
-    getEntityByUri(@RequestParam final @NotNull CourseName course, @RequestParam final String uri) {
+    getEntityByUri(@RequestParam final @NotNull CourseName course,
+                   @RequestParam final String uri,
+                   @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
         final KnowledgeCard knowledgeCard =
                 this.knowledgeCardService.getKnowledgeCard(course.toOpedukg(), uri);
-        return this.getEntityByName(course, knowledgeCard.getEntity().getName());
+        return this.getEntityByName(course, knowledgeCard.getEntity().getName(), currentUser);
     }
 
     @GetMapping(value = "/entity", params = {"name", "!uri"})
     public ResponseEntity<KnowledgeBaseEntityDetail>
     getEntityByName(@RequestParam final @NotNull CourseName course,
-                    @RequestParam final @NotNull String name) {
+                    @RequestParam final @NotNull String name,
+                    @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
         final KnowledgeBaseEntityDetail entity = this.entityService.getEntity(course.toOpedukg(),
                                                                               name);
+        final BrowsingHistoryItem browsingHistoryItem = this.browsingHistoryItemRepository
+                .findByUserIdAndNameAndCourse(currentUser.getId(), name, course)
+                .orElse(new BrowsingHistoryItem(name, course,
+                                                this.userRepository.getById(currentUser.getId())));
+        browsingHistoryItem.incCount(1);
+        this.browsingHistoryItemRepository.save(browsingHistoryItem);
         return ResponseEntity.ok(entity);
     }
 
