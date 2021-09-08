@@ -53,8 +53,14 @@ public class OpedukgController {
     @GetMapping("/search")
     public ResponseEntity<Page<SearchResult>> search(@RequestParam final @NotNull CourseName course,
                                                      @RequestParam final @NotNull String keyword,
-                                                     final Pageable pageable) {
+                                                     final @NotNull Pageable pageable) {
         final List<SearchResult> results = this.searchService.search(course.toOpedukg(), keyword);
+        // TODO 怎么才能不这么脏？QwQ
+        pageable.getSort().stream().findFirst().ifPresent(order -> {
+            if (order.getProperty().equals("default") && order.isDescending()) {
+                Collections.reverse(results);
+            }
+        });
         final Page<SearchResult> page = PageFactory.fromList(results, pageable);
         return ResponseEntity.ok(page);
     }
