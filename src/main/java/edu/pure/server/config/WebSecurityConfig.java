@@ -45,6 +45,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
             .authorizeRequests(configure -> configure
                     .antMatchers("/api/auth/**").permitAll()
+                    .antMatchers("/api/opedukg/entities").permitAll()
                     .anyRequest().authenticated()
             )
             .addFilterBefore(this.jwtAuthenticationFilter(),

@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
 import java.util.Collections;
 
@@ -33,6 +34,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
+@PermitAll
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
