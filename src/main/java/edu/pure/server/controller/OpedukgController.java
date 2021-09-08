@@ -7,6 +7,7 @@ import edu.pure.server.model.Exercise;
 import edu.pure.server.model.User;
 import edu.pure.server.opedukg.entity.*;
 import edu.pure.server.opedukg.service.*;
+import edu.pure.server.payload.SearchFilterParam;
 import edu.pure.server.repository.BrowsingHistoryItemRepository;
 import edu.pure.server.repository.ErrorBookRepository;
 import edu.pure.server.repository.ExerciseRepository;
@@ -20,13 +21,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,10 +51,20 @@ public class OpedukgController {
     private Map<CourseName, Set<String>> keywords;
 
     @GetMapping("/search")
-    public ResponseEntity<Page<SearchResult>> search(@RequestParam final @NotNull CourseName course,
-                                                     @RequestParam final @NotNull String keyword,
-                                                     final @NotNull Pageable pageable) {
-        final List<SearchResult> results = this.searchService.search(course.toOpedukg(), keyword);
+    public ResponseEntity<Page<SearchResult>>
+    search(@RequestParam final @NotNull CourseName course,
+           @RequestParam final @NotNull String keyword,
+           @ModelAttribute SearchFilterParam filter,
+           final @NotNull Pageable pageable
+    ) {
+        if (filter == null) {
+            filter = SearchFilterParam.DEFAULT;
+        } else {
+            filter.setPattern(URLDecoder.decode(filter.getPattern(), StandardCharsets.UTF_8));
+        }
+        final List<SearchResult> results = this.searchService.search(course.toOpedukg(), keyword)
+                                                             .stream().filter(filter.asPredicate())
+                                                             .collect(Collectors.toList());
         // TODO 怎么才能不这么脏？QwQ
         pageable.getSort().stream().findFirst().ifPresent(order -> {
             if (order.getProperty().equals("default") && order.isDescending()) {
