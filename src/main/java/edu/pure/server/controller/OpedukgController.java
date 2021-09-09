@@ -3,14 +3,13 @@ package edu.pure.server.controller;
 import edu.pure.server.exception.UnimplementedException;
 import edu.pure.server.model.BrowsingHistoryItem;
 import edu.pure.server.model.CourseName;
-import edu.pure.server.model.Exercise;
 import edu.pure.server.model.User;
 import edu.pure.server.opedukg.entity.*;
+import edu.pure.server.opedukg.model.OpedukgExercise;
 import edu.pure.server.opedukg.service.*;
 import edu.pure.server.payload.SearchFilterParam;
 import edu.pure.server.repository.BrowsingHistoryItemRepository;
 import edu.pure.server.repository.ErrorBookRepository;
-import edu.pure.server.repository.ExerciseRepository;
 import edu.pure.server.repository.UserRepository;
 import edu.pure.server.security.UserPrincipal;
 import edu.pure.server.util.PageFactory;
@@ -43,7 +42,6 @@ public class OpedukgController {
     private final KnowledgeCardService knowledgeCardService;
 
     private final UserRepository userRepository;
-    private final ExerciseRepository exerciseRepository;
     private final ErrorBookRepository errorBookRepository;
     private final BrowsingHistoryItemRepository browsingHistoryItemRepository;
 
@@ -145,9 +143,6 @@ public class OpedukgController {
     getExercises(@RequestParam final String entityName,
                  @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
         List<? extends OpedukgExercise> exercises = this.exerciseService.getExercise(entityName);
-        this.exerciseRepository.saveAll(exercises.stream()
-                                                 .map(Exercise::fromOpedukg)
-                                                 .collect(Collectors.toList()));
         final User user = this.userRepository.getById(currentUser.getId());
         exercises = exercises.stream()
                              .map(exercise -> new OpedukgExercise(exercise) {

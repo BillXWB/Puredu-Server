@@ -1,16 +1,22 @@
 package edu.pure.server.controller;
 
 import edu.pure.server.exception.ResourceNotFoundException;
-import edu.pure.server.model.*;
+import edu.pure.server.model.BrowsingHistoryItem;
+import edu.pure.server.model.ErrorBookItem;
+import edu.pure.server.model.FavoriteItem;
+import edu.pure.server.model.User;
 import edu.pure.server.opedukg.entity.KnowledgeBaseEntityDetail;
-import edu.pure.server.opedukg.entity.OpedukgExercise;
+import edu.pure.server.opedukg.model.OpedukgExercise;
+import edu.pure.server.opedukg.repository.OpedukgExerciseRepository;
 import edu.pure.server.opedukg.service.EntityService;
 import edu.pure.server.opedukg.service.ExerciseService;
-import edu.pure.server.opedukg.service.SearchService;
 import edu.pure.server.payload.ApiResponse;
 import edu.pure.server.payload.BrowsingHistoryResponse;
 import edu.pure.server.payload.FavoriteResponse;
-import edu.pure.server.repository.*;
+import edu.pure.server.repository.BrowsingHistoryItemRepository;
+import edu.pure.server.repository.ErrorBookRepository;
+import edu.pure.server.repository.FavoriteItemRepository;
+import edu.pure.server.repository.UserRepository;
 import edu.pure.server.security.UserPrincipal;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +28,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.function.BiFunction;
@@ -34,12 +41,11 @@ import java.util.stream.Stream;
 @RequestMapping("/api")
 @RolesAllowed("USER")
 public class UserController {
-    private final SearchService searchService;
     private final EntityService entityService;
     private final ExerciseService exerciseService;
 
     private final UserRepository userRepository;
-    private final ExerciseRepository exerciseRepository;
+    private final OpedukgExerciseRepository opedukgExerciseRepository;
     private final ErrorBookRepository errorBookRepository;
     private final BrowsingHistoryItemRepository browsingHistoryItemRepository;
     private final FavoriteItemRepository favoriteItemRepository;
@@ -76,9 +82,10 @@ public class UserController {
         if (!this.errorBookRepository.existsByUserIdAndExerciseId(currentUser.getId(),
                                                                   exerciseId)) {
             final User user = this.userRepository.getById(currentUser.getId());
-            final Exercise exercise = this.exerciseRepository
+            final OpedukgExercise exercise = this.opedukgExerciseRepository
                     .findById(exerciseId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Exercise", "id", exerciseId));
+                    .orElseThrow(() -> new ResourceNotFoundException("OpedukgExercise",
+                                                                     "id", exerciseId));
             this.errorBookRepository.save(new ErrorBookItem(user, exercise));
         }
         return ResponseEntity.ok(ApiResponse.success());
@@ -91,7 +98,7 @@ public class UserController {
                    @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
         if (!this.errorBookRepository.existsByUserIdAndExerciseId(currentUser.getId(),
                                                                   exerciseId)) {
-            throw new ResourceNotFoundException("Exercise in error book", "id", exerciseId);
+            throw new ResourceNotFoundException("OpedukgExercise in error book", "id", exerciseId);
         }
         this.errorBookRepository.deleteByUserIdAndExerciseId(currentUser.getId(), exerciseId);
         return ResponseEntity.ok(ApiResponse.success());
@@ -104,14 +111,14 @@ public class UserController {
                    @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
         this.errorBookRepository.deleteByUserId(currentUser.getId());
         exerciseIds.forEach(exerciseId -> {
-            if (!this.exerciseRepository.existsById(exerciseId)) {
-                throw new ResourceNotFoundException("Exercise", "id", exerciseId);
+            if (!this.opedukgExerciseRepository.existsById(exerciseId)) {
+                throw new ResourceNotFoundException("OpedukgExercise", "id", exerciseId);
             }
         });
         final User user = this.userRepository.getById(currentUser.getId());
         final List<ErrorBookItem> errorBook =
                 exerciseIds.stream()
-                           .map(this.exerciseRepository::findById)
+                           .map(this.opedukgExerciseRepository::findById)
                            .map(Optional::get)
                            .map(exercise -> new ErrorBookItem(user, exercise))
                            .collect(Collectors.toList());
@@ -175,13 +182,11 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @GetMapping("/user/exercises")
     public ResponseEntity<?>
     getExercises(final int size,
                  @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
-        // TODO: 对试题搜索结果进行缓存，以优化性能。
-        //  由于错题本的题目必须存在于数据库中，所以此处返回的错题也需要加入数据库。
         final List<BrowsingHistoryItem> browsingHistory =
                 this.browsingHistoryItemRepository.findAllByUserId(currentUser.getId());
         final var exercises = new HashSet<OpedukgExercise>();
@@ -257,5 +262,10 @@ public class UserController {
     public ResponseEntity<List<User>> getAll() {
         final List<User> users = this.userRepository.findAll();
         return ResponseEntity.ok(users);
+    }
+
+    @PostConstruct
+    private void cacheExercises() {
+        this.exerciseEntityNames.forEach(this.exerciseService::getExercise);
     }
 }

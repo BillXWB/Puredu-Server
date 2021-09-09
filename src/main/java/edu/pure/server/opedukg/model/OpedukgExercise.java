@@ -1,17 +1,14 @@
-package edu.pure.server.opedukg.entity;
+package edu.pure.server.opedukg.model;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import net.minidev.json.annotate.JsonIgnore;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -21,9 +18,9 @@ import java.util.stream.Collectors;
 @Getter
 @NoArgsConstructor
 @EqualsAndHashCode(of = "id")
-@MappedSuperclass
+@Entity
+@Table(name = "opedukg_exercises")
 public class OpedukgExercise {
-    @JsonIgnore
     @Id
     private int id;
 
@@ -34,12 +31,19 @@ public class OpedukgExercise {
 
     private int answer;
 
+    @JsonUnwrapped
+    @ManyToOne
+    @JoinColumn(name = "entity_name")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private CachedExerciseEntityName entityName;
+
     public OpedukgExercise(final int id,
+                           final @NotNull CachedExerciseEntityName entityName,
                            final @NotNull String question,
                            final @NotNull String answer) {
-        final Logger logger = LoggerFactory.getLogger(OpedukgExercise.class);
         // TODO 非选择题
         this.id = id;
+        this.entityName = entityName;
         final List<String> segments = Arrays.stream(question.split("[A-Z][．.]")) // 可能是全角句点...
                                             .map(String::strip)
                                             .filter(Predicate.not(String::isEmpty))
@@ -51,6 +55,7 @@ public class OpedukgExercise {
 
     protected OpedukgExercise(final @NotNull OpedukgExercise other) {
         this.id = other.getId();
+        this.entityName = other.getEntityName();
         this.question = other.getQuestion();
         this.options = other.getOptions();
         this.answer = other.getAnswer();
