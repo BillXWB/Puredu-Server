@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.PermitAll;
@@ -138,6 +139,7 @@ public class OpedukgController {
         return ResponseEntity.ok(results);
     }
 
+    @Transactional
     @GetMapping("/exercises")
     public ResponseEntity<List<? extends OpedukgExercise>>
     getExercises(@RequestParam final String entityName,
