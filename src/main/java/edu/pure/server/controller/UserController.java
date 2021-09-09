@@ -263,7 +263,7 @@ public class UserController {
         if (!this.passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             return ResponseEntity.badRequest().body(ApiResponse.failure("旧密码错误！"));
         }
-        user.setPassword(request.getNewPassword());
+        user.setPassword(this.passwordEncoder.encode(request.getNewPassword()));
         this.userRepository.save(user);
         return ResponseEntity.ok(ApiResponse.success());
     }
