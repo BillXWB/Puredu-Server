@@ -24,11 +24,12 @@ public class SearchFilterParam {
     }
 
     public Predicate<SearchResult> asPredicate() {
-        String pattern = this.getPattern();
-        if (!this.isRegularExpression()) {
-            pattern = Pattern.quote(pattern);
+        Predicate<String> filter;
+        if (this.isRegularExpression()) { // 使用正则时，感觉比较符合直觉的是用精确匹配
+            filter = Pattern.compile(this.getPattern()).asMatchPredicate();
+        } else { // 不用正则的时候，子串匹配就好
+            filter = Pattern.compile(Pattern.quote(this.getPattern())).asPredicate();
         }
-        Predicate<String> filter = Pattern.compile(pattern).asPredicate();
         if (this.isExclusive()) {
             filter = Predicate.not(filter);
         }
