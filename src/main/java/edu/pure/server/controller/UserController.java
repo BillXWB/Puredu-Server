@@ -12,6 +12,7 @@ import edu.pure.server.opedukg.service.EntityService;
 import edu.pure.server.opedukg.service.ExerciseService;
 import edu.pure.server.payload.ApiResponse;
 import edu.pure.server.payload.BrowsingHistoryResponse;
+import edu.pure.server.payload.ChangePasswordRequest;
 import edu.pure.server.payload.FavoriteResponse;
 import edu.pure.server.repository.BrowsingHistoryItemRepository;
 import edu.pure.server.repository.ErrorBookRepository;
@@ -25,11 +26,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.security.RolesAllowed;
+import javax.validation.Valid;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
@@ -49,6 +53,8 @@ public class UserController {
     private final ErrorBookRepository errorBookRepository;
     private final BrowsingHistoryItemRepository browsingHistoryItemRepository;
     private final FavoriteItemRepository favoriteItemRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${user-controller.exercise-entity-names}")
     private List<String> exerciseEntityNames;
@@ -204,13 +210,12 @@ public class UserController {
                 weights.add(sum);
             }
             final var random = new Random();
-            for (int tried = 0; tried < 3 * size && exercises.size() < size * 0.7; ++tried) {
+            for (int tried = 0; tried < 3 * size && exercises.size() < size * 0.5; ++tried) {
                 int index = Collections.binarySearch(weights, random.nextInt(sum));
                 if (index < 0) {
                     index = -1 - index;
                 }
-                exerciseSupplier.apply(browsingHistory.get(index).getName(),
-                                       Math.min(5, Math.max(1, size / 4)))
+                exerciseSupplier.apply(browsingHistory.get(index).getName(), 1)
                                 .forEach(exercises::add);
             }
         }
@@ -227,13 +232,13 @@ public class UserController {
                                                 return list;
                                             }
                                     )).stream()
-                                    .takeWhile(e -> random.nextDouble() < 0.2)
+                                    .takeWhile(e -> random.nextGaussian() < 1)
                                     .forEach(exercises::add);
         }
         for (int tried = 0; tried < 3 * size && exercises.size() < size; ++tried) {
             final String entityName =
                     this.exerciseEntityNames.get(random.nextInt(this.exerciseEntityNames.size()));
-            exerciseSupplier.apply(entityName, Math.max(1, size / 3))
+            exerciseSupplier.apply(entityName, 1)
                             .forEach(exercises::add);
         }
         return ResponseEntity.ok(exercises.stream()
@@ -246,6 +251,21 @@ public class UserController {
                                                   }
                                           ))
         );
+    }
+
+    @Transactional
+    @PutMapping("/user/password")
+    public ResponseEntity<ApiResponse<?>>
+    updatePassword(@RequestBody final @Valid @NotNull ChangePasswordRequest request,
+                   @AuthenticationPrincipal final @NotNull UserPrincipal currentUser
+    ) {
+        final User user = this.userRepository.getById(currentUser.getId());
+        if (!this.passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            return ResponseEntity.badRequest().body(ApiResponse.failure("旧密码错误！"));
+        }
+        user.setPassword(request.getNewPassword());
+        this.userRepository.save(user);
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
     @GetMapping("/users/{userId}")
@@ -262,6 +282,14 @@ public class UserController {
     public ResponseEntity<List<User>> getAll() {
         final List<User> users = this.userRepository.findAll();
         return ResponseEntity.ok(users);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    private @NotNull ResponseEntity<ApiResponse<?>>
+    methodArgumentNotValidHandler(final @NotNull MethodArgumentNotValidException exception) {
+        final String message = exception.getAllErrors().get(0).getDefaultMessage();
+        assert message != null;
+        return ResponseEntity.badRequest().body(ApiResponse.failure(message));
     }
 
     @PostConstruct
