@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -60,7 +61,7 @@ public class OpedukgExercise {
 
     protected OpedukgExercise(final @NotNull OpedukgExercise other) {
         this.id = other.getId();
-        this.entityNames = other.getEntityNames();
+        this.entityNames = new HashSet<>(other.getEntityNames());
         this.question = other.getQuestion();
         this.options = other.getOptions();
         this.answer = other.getAnswer();
