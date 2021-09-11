@@ -3,15 +3,14 @@ package edu.pure.server.controller;
 import edu.pure.server.exception.UnimplementedException;
 import edu.pure.server.model.BrowsingHistoryItem;
 import edu.pure.server.model.CourseName;
-import edu.pure.server.model.User;
 import edu.pure.server.opedukg.entity.*;
 import edu.pure.server.opedukg.model.OpedukgExercise;
 import edu.pure.server.opedukg.service.*;
 import edu.pure.server.payload.SearchFilterParam;
 import edu.pure.server.repository.BrowsingHistoryItemRepository;
-import edu.pure.server.repository.ErrorBookRepository;
 import edu.pure.server.repository.UserRepository;
 import edu.pure.server.security.UserPrincipal;
+import edu.pure.server.service.ErrorBookService;
 import edu.pure.server.util.PageFactory;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -42,8 +41,9 @@ public class OpedukgController {
     private final QuestionService questionService;
     private final KnowledgeCardService knowledgeCardService;
 
+    private final ErrorBookService errorBookService;
+
     private final UserRepository userRepository;
-    private final ErrorBookRepository errorBookRepository;
     private final BrowsingHistoryItemRepository browsingHistoryItemRepository;
 
     @Value("#{${opedukg-controller.keywords}}")
@@ -144,16 +144,12 @@ public class OpedukgController {
     public ResponseEntity<List<? extends OpedukgExercise>>
     getExercises(@RequestParam final String entityName,
                  @AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
-        List<? extends OpedukgExercise> exercises = this.exerciseService.getExercise(entityName);
-        final User user = this.userRepository.getById(currentUser.getId());
-        exercises = exercises.stream()
-                             .map(exercise -> new OpedukgExercise(exercise) {
-                                 public final boolean marked =
-                                         OpedukgController.this.errorBookRepository
-                                                 .existsByUserIdAndExerciseId(user.getId(),
-                                                                              exercise.getId());
-                             })
-                             .collect(Collectors.toList());
+        final List<OpedukgExercise> exercises =
+                this.exerciseService.getExercise(entityName).stream()
+                                    .map(e -> this.errorBookService
+                                            .markExerciseInErrorBook(e, currentUser.getId())
+                                    )
+                                    .collect(Collectors.toList());
         return ResponseEntity.ok(exercises);
     }
 

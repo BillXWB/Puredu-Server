@@ -19,6 +19,7 @@ import edu.pure.server.repository.ErrorBookRepository;
 import edu.pure.server.repository.FavoriteItemRepository;
 import edu.pure.server.repository.UserRepository;
 import edu.pure.server.security.UserPrincipal;
+import edu.pure.server.service.ErrorBookService;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +49,8 @@ public class UserController {
     private final EntityService entityService;
     private final ExerciseService exerciseService;
 
+    private final ErrorBookService errorBookService;
+
     private final UserRepository userRepository;
     private final OpedukgExerciseRepository opedukgExerciseRepository;
     private final ErrorBookRepository errorBookRepository;
@@ -59,6 +62,7 @@ public class UserController {
     @Value("${user-controller.exercise-entity-names}")
     private List<String> exerciseEntityNames;
 
+    @Transactional(readOnly = true)
     @GetMapping("/user/me")
     public ResponseEntity<Map<String, Object>>
     getCurrentUser(@AuthenticationPrincipal final @NotNull UserPrincipal currentUser) {
@@ -243,6 +247,9 @@ public class UserController {
         }
         return ResponseEntity.ok(exercises.stream()
                                           .limit(size)
+                                          .map(e -> this.errorBookService
+                                                  .markExerciseInErrorBook(e, currentUser.getId())
+                                          )
                                           .collect(Collectors.collectingAndThen(
                                                   Collectors.toList(),
                                                   list -> {
