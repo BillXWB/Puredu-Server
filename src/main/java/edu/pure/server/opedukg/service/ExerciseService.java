@@ -53,7 +53,9 @@ public class ExerciseService {
         final OpedukgResponse<List<Data>> response =
                 this.client.get(ExerciseService.URL, Response.class,
                                 Map.of("uriName", entityName.getValue()));
-        return response.getData().stream()
+        return response.getData().stream() // 过滤非单选题
+                       .filter(d -> d.getQAnswer().length() == 1)
+                       .filter(d -> d.getQAnswer().matches("[A-Z]"))
                        .map(d -> new OpedukgExercise(d.getId(), entityName,
                                                      d.getQBody(), d.getQAnswer()))
                        .collect(Collectors.toList());

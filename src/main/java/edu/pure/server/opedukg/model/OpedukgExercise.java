@@ -47,7 +47,6 @@ public class OpedukgExercise {
                            final @NotNull CachedExerciseEntityName entityName,
                            final @NotNull String question,
                            final @NotNull String answer) {
-        // TODO 非选择题
         this.id = id;
         this.entityNames = Set.of(entityName);
         final List<String> segments = Arrays.stream(question.split("[A-Z][．.]")) // 可能是全角句点...
