@@ -24,9 +24,12 @@ public class OpedukgExercise {
     @Id
     private int id;
 
+    @Column(columnDefinition = "TEXT")
     private String question;
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(joinColumns = @JoinColumn(name = "exercise_id"))
+    @Column(name = "option", columnDefinition = "TEXT")
     private List<String> options;
 
     private int answer;

@@ -19,7 +19,9 @@ public class EntityRecord extends DateAudit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(columnDefinition = "TEXT")
     private String name;
+
     private CourseName course;
 
     @ManyToOne
