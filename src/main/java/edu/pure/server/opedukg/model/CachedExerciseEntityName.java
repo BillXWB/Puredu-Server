@@ -14,7 +14,7 @@ import java.util.List;
 @Table(name = "cached_exercise_entity_names")
 public class CachedExerciseEntityName {
     @JsonIgnore
-    @OneToMany(mappedBy = "entityName")
+    @ManyToMany(mappedBy = "entityNames")
     private final List<OpedukgExercise> exercises = List.of();
 
     @JsonProperty("entityName")

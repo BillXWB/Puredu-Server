@@ -33,8 +33,18 @@ public class ExerciseService {
                 .orElseGet(() -> {
                     final var entityNameCached = new CachedExerciseEntityName(entityName);
                     this.cachedExerciseEntityNameRepository.save(entityNameCached);
-                    return this.opedukgExerciseRepository.saveAll(
-                            this.getExerciseFromOpedukg(entityNameCached));
+                    final List<OpedukgExercise> exercises =
+                            this.getExerciseFromOpedukg(entityNameCached).stream()
+                                .map(e -> this.opedukgExerciseRepository
+                                        .findById(e.getId())
+                                        .map(e_ -> {
+                                            e_.getEntityNames().add(entityNameCached);
+                                            return e_;
+                                        })
+                                        .orElse(e)
+                                )
+                                .collect(Collectors.toList());
+                    return this.opedukgExerciseRepository.saveAll(exercises);
                 });
     }
 

@@ -4,13 +4,12 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -27,6 +26,7 @@ public class OpedukgExercise {
     @Column(columnDefinition = "TEXT")
     private String question;
 
+    @SuppressWarnings("JpaDataSourceORMInspection")
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(joinColumns = @JoinColumn(name = "exercise_id"))
     @Column(name = "option", columnDefinition = "TEXT")
@@ -35,10 +35,13 @@ public class OpedukgExercise {
     private int answer;
 
     @JsonUnwrapped
-    @ManyToOne
-    @JoinColumn(name = "entity_name")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private CachedExerciseEntityName entityName;
+    @ManyToMany
+    @JoinTable(
+            name = "opedukg_exercise_entity_names",
+            joinColumns = @JoinColumn(name = "exercise_id"),
+            inverseJoinColumns = @JoinColumn(name = "entity_name")
+    )
+    private Set<CachedExerciseEntityName> entityNames;
 
     public OpedukgExercise(final int id,
                            final @NotNull CachedExerciseEntityName entityName,
@@ -46,7 +49,7 @@ public class OpedukgExercise {
                            final @NotNull String answer) {
         // TODO 非选择题
         this.id = id;
-        this.entityName = entityName;
+        this.entityNames = Set.of(entityName);
         final List<String> segments = Arrays.stream(question.split("[A-Z][．.]")) // 可能是全角句点...
                                             .map(String::strip)
                                             .filter(Predicate.not(String::isEmpty))
@@ -58,7 +61,7 @@ public class OpedukgExercise {
 
     protected OpedukgExercise(final @NotNull OpedukgExercise other) {
         this.id = other.getId();
-        this.entityName = other.getEntityName();
+        this.entityNames = other.getEntityNames();
         this.question = other.getQuestion();
         this.options = other.getOptions();
         this.answer = other.getAnswer();
