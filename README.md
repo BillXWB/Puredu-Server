@@ -18,3 +18,11 @@ spring.datasource.password=
 opedukg-client.login-service.phone-number=
 opedukg-client.login-service.password=
 ```
+
+
+
+---
+
+
+
+并不知道怎么解决 `org.hibernate.LazyInitializationException`…
